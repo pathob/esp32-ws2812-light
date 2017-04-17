@@ -1,0 +1,10 @@
+# build dir
+build/
+
+# sdk config
+sdkconfig
+sdkconfig.old
+
+# eclipse files
+.cproject
+.project

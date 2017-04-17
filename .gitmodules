@@ -1,0 +1,6 @@
+[submodule "components/ota"]
+	path = components/ota
+	url = git@github.com:pathob/esp32-ota.git
+[submodule "components/wifi"]
+	path = components/wifi
+	url = git@github.com:pathob/esp32-wifi.git
