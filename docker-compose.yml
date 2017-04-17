@@ -1,0 +1,8 @@
+version: '2'
+services:
+  ota-server:
+    build: docker/ota-server
+    ports:
+      - 9080:8080
+    volumes:
+      - ./docker/ota-server/data:/srv/www
