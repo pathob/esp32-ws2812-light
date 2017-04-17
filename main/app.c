@@ -17,7 +17,7 @@ void app_main()
     WIFI_init(NULL);
 
     // TODO: How to decide if update should be started?
-    xTaskCreate(&OTA_task, "OTA_task", 2048, NULL, 10, NULL);
+    // xTaskCreate(&OTA_task, "OTA_task", 2048, NULL, 10, NULL);
 
     /*
     esp_bt_controller_init();
@@ -31,4 +31,6 @@ void app_main()
     xTaskCreate(&bleAdvtTask, "bleAdvtTask", 2048, (void* ) 0, 10, NULL);
 //    xTaskCreate(&wifiTask,    "wifiTask",    2048, (void* ) 1, 10, NULL);
      */
+
+    // vTaskStartScheduler();
 }

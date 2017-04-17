@@ -4,3 +4,6 @@
 [submodule "components/wifi"]
 	path = components/wifi
 	url = git@github.com:pathob/esp32-wifi.git
+[submodule "components/mqtt"]
+	path = components/mqtt
+	url = git@github.com:pathob/paho.mqtt.embedded-c.git

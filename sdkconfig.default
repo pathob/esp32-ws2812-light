@@ -1,0 +1,3 @@
+
+# per default, use OTA partitioning
+CONFIG_PARTITION_TABLE_TWO_OTA=y
