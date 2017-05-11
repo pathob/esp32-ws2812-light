@@ -7,3 +7,6 @@
 [submodule "components/mqtt"]
 	path = components/mqtt
 	url = git@github.com:pathob/paho.mqtt.embedded-c.git
+[submodule "components/periphery"]
+	path = components/periphery
+	url = git@github.com:pathob/esp32-periphery.git
