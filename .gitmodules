@@ -10,3 +10,9 @@
 [submodule "components/periphery"]
 	path = components/periphery
 	url = git@github.com:pathob/esp32-periphery.git
+[submodule "components/httpd"]
+	path = components/httpd
+	url = git@github.com:chmorgan/libesphttpd.git
+[submodule "components/libesphttpd"]
+	path = components/libesphttpd
+	url = https://github.com/chmorgan/libesphttpd.git
