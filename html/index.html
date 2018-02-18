@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Title</title>
+
+    <link href="bootstrap.min.css" rel="stylesheet">
+    <link href="bootstrap-toggle.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="jumbotron.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <nav class="navbar navbar-toggleable-md navbar-inverse fixed-top bg-inverse">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <span class="navbar-brand">Title</span>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      <br>
+      <br>
+      <div class="checkbox" style="margin-left: 1em;">
+        <label>
+          <input id="led-toggle" type="checkbox" data-toggle="toggle" data-on="An" data-off="Aus" />
+          LED Streifen
+        </label>
+      </div>
+
+      <hr>
+
+      <footer>
+        <p>Footer</p>
+      </footer>
+    </div>
+
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="jquery.min.js"></script>
+    <script src="tether.min.js"></script>
+    <script src="bootstrap.min.js"></script>
+    <script src="bootstrap-toggle.min.js"></script>
+    <script src="ie10-viewport-bug-workaround.js"></script>
+    <script>
+      $(function() {
+        var loc = window.location;
+        var ws_uri;
+        if (loc.protocol === "https:") {
+            ws_uri = "wss:";
+        } else {
+            ws_uri = "ws:";
+        }
+        ws_uri += "//" + loc.host;
+
+        var ledToggleWebsocket = new WebSocket(ws_uri + "/websocket/led");
+
+        $('#led-toggle').change(function() {
+          ledToggleWebsocket.send($(this).prop('checked'));
+        })
+      })
+    </script>
+  </body>
+</html>

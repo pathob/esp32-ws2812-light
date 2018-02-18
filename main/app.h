@@ -32,9 +32,24 @@
 #include "freertos/queue.h"
 #include "freertos/task.h"
 
+#include "libesphttpd/esp.h"
+#include "libesphttpd/httpd.h"
+#include "libesphttpd/httpd-freertos.h"
+#include "libesphttpd/httpdespfs.h"
+#include "libesphttpd/cgiwifi.h"
+#include "libesphttpd/cgiflash.h"
+#include "libesphttpd/auth.h"
+#include "libesphttpd/espfs.h"
+#include "libesphttpd/captdns.h"
+#include "libesphttpd/webpages-espfs.h"
+#include "libesphttpd/cgiwebsocket.h"
+#include "libesphttpd/route.h"
+
 #include <time.h>
 #include <string.h>
 #include <sys/time.h>
+#include <stdio.h>
+#include <math.h>
 
 #include "MQTTESP32.h"
 #include "MQTTClient.h"
