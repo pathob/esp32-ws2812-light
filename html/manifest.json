@@ -1,0 +1,22 @@
+{
+    "name": "Title",
+    "icons": [
+        {
+        "src": "launcher-icon-36.png",
+        "sizes": "36x36",
+        "type": "image/png",
+        "density": 0.75
+        },
+        {
+        "src": "launcher-icon-48.png",
+        "sizes": "48x48",
+        "type": "image/png",
+        "density": 1.0
+        }
+    ],
+    "start_url": "index.html",
+    "display": "standalone",
+    "orientation": "portrait",
+    "theme_color": "#292b2c",
+    "background_color": "#FFFFFF"
+}

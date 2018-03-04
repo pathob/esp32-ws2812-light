@@ -98,6 +98,8 @@ static void IRAM_ATTR gpio_isr_task(void* pvParams)
 
 static void ledWebsocketConnect(
     Websock *ws);
+static void ledWebsocketClose(
+    Websock *ws);
 static void ledWebsocketRecv(
     Websock *ws,
     char *data,
@@ -119,10 +121,19 @@ static void ledWebsocketConnect(
     Websock *ws)
 {
 	ws->recvCb = ledWebsocketRecv;
+	ws->closeCb = ledWebsocketClose;
+
+    for (uint8_t i = 0; i < 4; i++) {
+        if (websockets[i] == ws) {
+            ESP_LOGI(TAG, "Websocket %d alreasy exists", i);
+            return;
+        }
+    }
 
     for (uint8_t i = 0; i < 4; i++) {
         if (websockets[i] == NULL) {
             websockets[i] = ws;
+            ESP_LOGI(TAG, "Websocket %d stored", i);
             break;
         }
     }
@@ -136,6 +147,7 @@ static void ledWebsocketClose(
     for (uint8_t i = 0; i < 4; i++) {
         if (websockets[i] == ws) {
             websockets[i] = NULL;
+            ESP_LOGI(TAG, "Websocket %d closed", i);
             break;
         }
     }
@@ -171,6 +183,7 @@ static void ledWebsocketSend()
 
     for (uint8_t i = 0; i < 4; i++) {
         if (websockets[i] != NULL) {
+            ESP_LOGI(TAG, "Websocket %d notified", i);
             cgiWebsocketSend(&httpd_instance.httpdInstance, websockets[i], send, strlen(send), WEBSOCK_FLAG_NONE);
         }
     }
