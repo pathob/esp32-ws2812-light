@@ -98,20 +98,18 @@ static void IRAM_ATTR gpio_isr_task(void* pvParams)
 
 static void ledWebsocketConnect(
     Websock *ws);
-static void ledWebsocketClose(
-    Websock *ws);
 static void ledWebsocketRecv(
     Websock *ws,
     char *data,
     int len,
     int flags);
-static void ledWebsocketSend();
+static void ledWebsocketBroadcast();
 
 static HttpdFreertosInstance httpd_instance;
 static uint8_t *httpd_buffer;
-static Websock *websockets[4];
 static const HttpdBuiltInUrl builtInUrls[] = {
     ROUTE_REDIRECT("/", "/index.html"),
+    ROUTE_REDIRECT("/apple-touch-icon.png", "/launcher-icon-48.png"),
     ROUTE_WS("/websocket/led", ledWebsocketConnect),
     ROUTE_FILESYSTEM(),
     ROUTE_END()
@@ -121,36 +119,16 @@ static void ledWebsocketConnect(
     Websock *ws)
 {
 	ws->recvCb = ledWebsocketRecv;
-	ws->closeCb = ledWebsocketClose;
+    
+    char send[6];
 
-    for (uint8_t i = 0; i < 4; i++) {
-        if (websockets[i] == ws) {
-            ESP_LOGI(TAG, "Websocket %d alreasy exists", i);
-            return;
-        }
+    if (stripe_state) {
+        strcpy(send, "true");
+    } else {
+        strcpy(send, "false");
     }
 
-    for (uint8_t i = 0; i < 4; i++) {
-        if (websockets[i] == NULL) {
-            websockets[i] = ws;
-            ESP_LOGI(TAG, "Websocket %d stored", i);
-            break;
-        }
-    }
-
-    ledWebsocketSend();
-}
-
-static void ledWebsocketClose(
-    Websock *ws)
-{
-    for (uint8_t i = 0; i < 4; i++) {
-        if (websockets[i] == ws) {
-            websockets[i] = NULL;
-            ESP_LOGI(TAG, "Websocket %d closed", i);
-            break;
-        }
-    }
+    cgiWebsocketSend(&httpd_instance.httpdInstance, ws, send, strlen(send), WEBSOCK_FLAG_NONE);
 }
 
 static void ledWebsocketRecv(
@@ -168,10 +146,10 @@ static void ledWebsocketRecv(
             on();
         }
     }
-    ledWebsocketSend();
+    ledWebsocketBroadcast();
 }
 
-static void ledWebsocketSend()
+static void ledWebsocketBroadcast()
 {
     char send[6];
 
@@ -181,12 +159,7 @@ static void ledWebsocketSend()
         strcpy(send, "false");
     }
 
-    for (uint8_t i = 0; i < 4; i++) {
-        if (websockets[i] != NULL) {
-            ESP_LOGI(TAG, "Websocket %d notified", i);
-            cgiWebsocketSend(&httpd_instance.httpdInstance, websockets[i], send, strlen(send), WEBSOCK_FLAG_NONE);
-        }
-    }
+    cgiWebsockBroadcast(&httpd_instance.httpdInstance, "/websocket/led", send, strlen(send), WEBSOCK_FLAG_NONE);
 }
 
 void app_main()
@@ -202,16 +175,11 @@ void app_main()
     stripe.rmt_channel = RMT_CHANNEL_0;
     stripe.rmt_interrupt_num = 0;
 
-    esp_err = WS2812_init(&stripe);
-    if (!esp_err) {
-        on();
-    }
-
     WIFI_init(WIFI_MODE_STA, NULL);
 
 	espFsInit((void*)(webpages_espfs_start));
 
-    uint8_t maxConnections = 16;
+    uint8_t maxConnections = 24;
     httpd_buffer = malloc(sizeof(RtosConnType) * maxConnections);
 
     httpdFreertosInit(
@@ -221,6 +189,11 @@ void app_main()
         httpd_buffer,
         maxConnections,
         HTTPD_FLAG_NONE);
+    
+    esp_err = WS2812_init(&stripe);
+    if (!esp_err) {
+        on();
+    }
 
     gpio_config_t gpio_conf;
     gpio_conf.intr_type = GPIO_PIN_INTR_POSEDGE;
