@@ -94,31 +94,20 @@ static void IRAM_ATTR gpio_isr_task(void* pvParams)
     }
 }
 
+// webserver stuff
+
+static void ledWebsocketConnect(
+    Websock *ws);
 static void ledWebsocketRecv(
     Websock *ws,
     char *data,
     int len,
-    int flags)
-{
-    if (len == 5 && strncmp(data, "false", 5) == 0) {
-        off();
-    } else if (len == 4 && strncmp(data, "true", 4) == 0) {
-        on();
-    } else {
-        toggle();
-    }
-}
-
-static void ledWebsocketConnect(
-    Websock *ws)
-{
-	ws->recvCb = ledWebsocketRecv;
-}
+    int flags);
+static void ledWebsocketSend();
 
 static HttpdFreertosInstance httpd_instance;
-
 static uint8_t *httpd_buffer;
-
+static Websock *websockets[4];
 static const HttpdBuiltInUrl builtInUrls[] = {
     ROUTE_REDIRECT("/", "/index.html"),
     ROUTE_WS("/websocket/led", ledWebsocketConnect),
@@ -126,12 +115,86 @@ static const HttpdBuiltInUrl builtInUrls[] = {
     ROUTE_END()
 };
 
+static void ledWebsocketConnect(
+    Websock *ws)
+{
+	ws->recvCb = ledWebsocketRecv;
+
+    for (uint8_t i = 0; i < 4; i++) {
+        if (websockets[i] == NULL) {
+            websockets[i] = ws;
+            break;
+        }
+    }
+
+    ledWebsocketSend();
+}
+
+static void ledWebsocketClose(
+    Websock *ws)
+{
+    for (uint8_t i = 0; i < 4; i++) {
+        if (websockets[i] == ws) {
+            websockets[i] = NULL;
+            break;
+        }
+    }
+}
+
+static void ledWebsocketRecv(
+    Websock *ws,
+    char *data,
+    int len,
+    int flags)
+{
+    if (len == 5 && strncmp(data, "false", 5) == 0) {
+        if (stripe_state) {
+            off();
+        }
+    } else if (len == 4 && strncmp(data, "true", 4) == 0) {
+        if (!stripe_state) {
+            on();
+        }
+    }
+    ledWebsocketSend();
+}
+
+static void ledWebsocketSend()
+{
+    char send[6];
+
+    if (stripe_state) {
+        strcpy(send, "true");
+    } else {
+        strcpy(send, "false");
+    }
+
+    for (uint8_t i = 0; i < 4; i++) {
+        if (websockets[i] != NULL) {
+            cgiWebsocketSend(&httpd_instance.httpdInstance, websockets[i], send, strlen(send), WEBSOCK_FLAG_NONE);
+        }
+    }
+}
+
 void app_main()
 {
     esp_err_t esp_err;
     
-    WIFI_init(WIFI_MODE_AP, NULL);
     gpio_install_isr_service(0);
+
+    // Init WS2812 stripe
+
+    stripe.gpio_num = WS2812_GPIO;
+    stripe.length = stripe_length;
+    stripe.rmt_channel = RMT_CHANNEL_0;
+    stripe.rmt_interrupt_num = 0;
+
+    esp_err = WS2812_init(&stripe);
+    if (!esp_err) {
+        on();
+    }
+
+    WIFI_init(WIFI_MODE_STA, NULL);
 
 	espFsInit((void*)(webpages_espfs_start));
 
@@ -145,18 +208,6 @@ void app_main()
         httpd_buffer,
         maxConnections,
         HTTPD_FLAG_NONE);
-
-    // Init WS2812 stripe
-
-    stripe.gpio_num = WS2812_GPIO;
-    stripe.length = stripe_length;
-    stripe.rmt_channel = RMT_CHANNEL_0;
-    stripe.rmt_interrupt_num = 0;
-
-    esp_err = WS2812_init(&stripe);
-    if (!esp_err) {
-        on();
-    }
 
     gpio_config_t gpio_conf;
     gpio_conf.intr_type = GPIO_PIN_INTR_POSEDGE;

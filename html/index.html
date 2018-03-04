@@ -29,16 +29,10 @@
       <br>
       <div class="checkbox" style="margin-left: 1em;">
         <label>
-          <input id="led-toggle" type="checkbox" data-toggle="toggle" data-on="An" data-off="Aus" />
+          <input id="led-toggle" type="checkbox" />
           LED Streifen
         </label>
       </div>
-
-      <hr>
-
-      <footer>
-        <p>Footer</p>
-      </footer>
     </div>
 
     <!-- Placed at the end of the document so the pages load faster -->
@@ -48,7 +42,22 @@
     <script src="bootstrap-toggle.min.js"></script>
     <script src="ie10-viewport-bug-workaround.js"></script>
     <script>
-      $(function() {
+      function websocketInit() {
+        var ledToggle = $('#led-toggle');
+
+        ledToggle.bootstrapToggle({
+          on: 'An',
+          off: 'Aus'
+        });
+
+        var ledToggleWebsocket;
+        var ledStatus = ledToggle.prop('checked');
+
+        if (typeof ledToggleWebsocket !== 'undefined') {
+          ledToggleWebsocket.onclose = function () {}; // disable onclose handler first
+          ledToggleWebsocket.close();
+        }
+
         var loc = window.location;
         var ws_uri;
         if (loc.protocol === "https:") {
@@ -58,12 +67,36 @@
         }
         ws_uri += "//" + loc.host;
 
-        var ledToggleWebsocket = new WebSocket(ws_uri + "/websocket/led");
+        ledToggleWebsocket = new WebSocket(ws_uri + "/websocket/led");
+
 
         $('#led-toggle').change(function() {
-          ledToggleWebsocket.send($(this).prop('checked'));
+          ledStatus = $(this).prop('checked');
+          ledToggleWebsocket.send(ledStatus);
         })
-      })
+
+        ledToggleWebsocket.onmessage = function (e) {$('#led-toggle')
+          var message = e.data;
+          console.log('Server: ' + message);
+          if (message === "true" && ledStatus == false) {
+            console.log("Set toggle to on");
+            ledToggle.bootstrapToggle('on');
+          } else if (message === "false" && ledStatus == true) {
+            console.log("Set toggle to off");
+            ledToggle.bootstrapToggle('off');
+          }
+        };
+      }
+
+      $(document).ready(function() {
+        console.log("ready");
+        websocketInit();
+      });
+
+      $(window).focus(function() {
+        console.log("focus");
+        websocketInit();
+      });
     </script>
   </body>
 </html>
