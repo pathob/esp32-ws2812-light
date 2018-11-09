@@ -77,19 +77,26 @@
 
         ledToggleWebsocket = new WebSocket(ws_uri + "/websocket/led");
 
-
         $('#led-toggle').change(function() {
-          ledStatus = $(this).prop('checked');
-          ledToggleWebsocket.send(ledStatus);
+          var toggleStatus = $(this).prop('checked');
+          console.log("Toggle status " + toggleStatus + ", LED Status " + ledStatus);;
+
+          if (toggleStatus != ledStatus) {
+            ledStatus = toggleStatus;
+            ledToggleWebsocket.send(ledStatus ? "1" : "0");
+            console.log("Status changed");
+          }
         })
 
-        ledToggleWebsocket.onmessage = function (e) {$('#led-toggle')
-          var message = e.data;
-          console.log('Server: ' + message);
-          if (message === "true" && ledStatus == false) {
+        ledToggleWebsocket.onmessage = function (e) {
+          var recvStatus = e.data;
+          console.log('Server: ' + recvStatus);
+          if (recvStatus === "1" && ledStatus == false) {
+            ledStatus = true;
             console.log("Set toggle to on");
             ledToggle.bootstrapToggle('on');
-          } else if (message === "false" && ledStatus == true) {
+          } else if (recvStatus === "0" && ledStatus == true) {
+            ledStatus = false;
             console.log("Set toggle to off");
             ledToggle.bootstrapToggle('off');
           }

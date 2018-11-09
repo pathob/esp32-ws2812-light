@@ -20,8 +20,9 @@
 #include "periph/i2c.h"
 #include "periph/delay.h"
 #include "periph/ws2812.h"
+#include "periph/display/bitmap.h"
 #include "periph/display/ssd1306_i2c.h"
-#include "periph/display/keyboard_64x128.h"
+// #include "periph/display/keyboard_64x128.h"
 #include "periph/font/lcd5x7.h"
 #include "periph/sensor/bme280_i2c.h"
 // #include "periph/sensor/rotary_encoder.h"
@@ -58,11 +59,12 @@
  * Keep GPIO defines ordered by GPIO_NUM_XX to avoid double assignments
  */
 
-const gpio_num_t ROTENC_GPIO_CLK   = GPIO_NUM_16;   // pin
-const gpio_num_t ROTENC_GPIO_DT    = GPIO_NUM_17;   // pin
-const gpio_num_t ROTENC_GPIO_SW    = GPIO_NUM_18;   // pin
-const gpio_num_t I2C_P0_GPIO_SDA   = GPIO_NUM_26;
-const gpio_num_t I2C_P0_GPIO_SCL   = GPIO_NUM_27;
+// const gpio_num_t ROTENC_GPIO_CLK   = GPIO_NUM_16;   // pin
+// const gpio_num_t ROTENC_GPIO_DT    = GPIO_NUM_17;   // pin
+// const gpio_num_t ROTENC_GPIO_SW    = GPIO_NUM_18;   // pin
+const gpio_num_t I2C_P0_GPIO_SDA   = GPIO_NUM_4;
+const gpio_num_t I2C_P0_GPIO_SCL   = GPIO_NUM_15;
+const gpio_num_t OLED_GPIO_RESET   = GPIO_NUM_16;   // pin
 const gpio_num_t WS2812_GPIO       = GPIO_NUM_33;
 
 /*
