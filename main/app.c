@@ -4,7 +4,7 @@ static const char *TAG = "APP";
 
 static WS2812_stripe_t stripe;
 static volatile uint8_t stripe_state = 0; 
-static const uint8_t stripe_length = 24;
+static const uint8_t stripe_length = 56;
 
 static i2c_port_t i2c_port0 = I2C_NUM_0;
 
@@ -13,19 +13,33 @@ static WS2812_color_t warmwhite = { 255, 150, 70 };
 static QueueHandle_t gpio_intr_queue = NULL;
 static unsigned long gpio_intr_last = 0;
 
+static char esp_wifi_sta_mac_address[12];
+
+static MQTTClient MQTT_client;
+static Network MQTT_network;
+
 // webserver stuff
 
 static void ledWebsocketConnect(
     Websock *ws);
-static void ledWebsocketRecv(
+
+static void ledWebsocketReceive(
     Websock *ws,
     char *data,
     int len,
     int flags);
+
 static void ledWebsocketBroadcast();
 
+static void mqttTopicLedReceive(
+    MessageData *data);
+
+static void mqttTopicLedBroadcast();
+
 static HttpdFreertosInstance httpd_instance;
+
 static uint8_t *httpd_buffer;
+
 static const HttpdBuiltInUrl builtInUrls[] = {
     ROUTE_REDIRECT("/", "/index.html"),
     ROUTE_REDIRECT("/apple-touch-icon.png", "/launcher-icon-48.png"),
@@ -124,6 +138,7 @@ static void on()
     uint64_t delay = pow(2, steps);
 
     ledWebsocketBroadcast();
+    mqttTopicLedBroadcast();
 
     for (uint8_t x = 0; x <  stripe.length; x++) {
         WS2812_set_color(&stripe, x, &warmwhite);
@@ -164,8 +179,9 @@ static void off()
     uint64_t delay = pow(2, steps);
 
     ledWebsocketBroadcast();
+    mqttTopicLedBroadcast();
 
-    WS2812_color_t black = { 0, 0, 255 };
+    WS2812_color_t black = { 0, 0, 0 };
 
     for (uint8_t x = 0; x <  stripe.length; x++) {
         WS2812_set_color(&stripe, x, &black);
@@ -212,22 +228,18 @@ static void IRAM_ATTR gpio_isr_task(void* pvParams)
 
     while(1) {
         xQueueReceive(gpio_intr_queue, &gpio_num, portMAX_DELAY);
-        // Toggle:
-        stripe_state == 0 ? on() : off();
+        stripe_state == 0 ? on() : off(); // Toggle
     }
 }
 
 static void ledWebsocketConnect(
     Websock *ws)
 {
-	ws->recvCb = ledWebsocketRecv;
-    
-    char send[1];
-    sprintf(send, "%d", stripe_state);
-    cgiWebsocketSend(&httpd_instance.httpdInstance, ws, send, 1, WEBSOCK_FLAG_NONE);
+	ws->recvCb = ledWebsocketReceive;
+    cgiWebsocketSend(&httpd_instance.httpdInstance, ws, stripe_state ? "1" : "0", 1, WEBSOCK_FLAG_NONE);
 }
 
-static void ledWebsocketRecv(
+static void ledWebsocketReceive(
     Websock *ws,
     char *data,
     int len,
@@ -240,38 +252,55 @@ static void ledWebsocketRecv(
 
 static void ledWebsocketBroadcast()
 {
-    char send[1];
-    sprintf(send, "%d", stripe_state);
-    cgiWebsockBroadcast(&httpd_instance.httpdInstance, "/websocket/led", send, 1, WEBSOCK_FLAG_NONE);
+    cgiWebsockBroadcast(&httpd_instance.httpdInstance, "/websocket/led", stripe_state ? "1" : "0", 1, WEBSOCK_FLAG_NONE);
 }
 
-void messageArrived(MessageData* data)
+// TODO: Respect MQTT connection status
+static void mqttTopicLedBroadcast()
 {
-    printf("Message arrived on topic %.*s: %.*s\n",
-            data->topicName->lenstring.len,
-            (char *) data->topicName->lenstring.data,
-            data->message->payloadlen,
-            (char *) data->message->payload);
+    return;
+
+    int rc = 0;
+    MQTTMessage message;
+
+    message.qos = 1;
+    message.retained = 0;
+    message.payload = stripe_state ? "1" : "0";
+    message.payloadlen = 1;
+
+    char mqtt_topic[24];
+    sprintf(mqtt_topic, "%s/led/status", esp_wifi_sta_mac_address);
+
+    if ((rc = MQTTPublish(&MQTT_client, mqtt_topic, &message)) != 0) {
+        ESP_LOGE(TAG, "Publishing MQTT message failed with return code %d", rc);
+    }
+}
+
+static void mqttTopicLedReceive(
+    MessageData *data)
+{
+    ESP_LOGI(TAG, "Received MQTT message in function %s", __func__);
+    if (data->message->payloadlen == 1) {
+        strncmp((char *) data->message->payload, "0", 1) == 0 ? off() : on();
+    }
 }
 
 void MQTT_task(void *pvParameters)
 {
-    MQTTClient client;
-    Network network;
     unsigned char sendbuf[80], readbuf[80];
     int rc = 0;
     int count = 0;
 
     MQTTPacket_connectData connectData = MQTTPacket_connectData_initializer;
-    NetworkInit(&network);
-    MQTTClientInit(&client, &network, 30000, sendbuf, sizeof(sendbuf), readbuf, sizeof(readbuf));
+    NetworkInit(&MQTT_network);
+    MQTTClientInit(&MQTT_client, &MQTT_network, 30000, sendbuf, sizeof(sendbuf), readbuf, sizeof(readbuf));
 
-    if ((rc = NetworkConnect(&network, MQTT_HOST, MQTT_PORT)) != 0)
-        printf("Return code from network connect is %d\n", rc);
+    if ((rc = NetworkConnect(&MQTT_network, MQTT_HOST, MQTT_PORT)) != 0)
+        ESP_LOGE(TAG, "Connecting to MQTT network failed with return code %d", rc);
 
     if (CONFIG_MQTT_USE_TASK) {
-        if ((rc = MQTTStartTask(&client)) != pdPASS) {
-            printf("Return code from start tasks is %d\n", rc);
+        if ((rc = MQTTStartTask(&MQTT_client)) != pdPASS) {
+            ESP_LOGE(TAG, "Starting MQTT task failed with return code %d", rc);
         }
     }
 
@@ -280,44 +309,43 @@ void MQTT_task(void *pvParameters)
     connectData.username.cstring = CONFIG_MQTT_USERNAME;
     connectData.password.cstring = CONFIG_MQTT_PASSWORD;
 
-    if ((rc = MQTTConnect(&client, &connectData)) != 0) {
-        printf("Return code from MQTT connect is %d\n", rc);
+    if ((rc = MQTTConnect(&MQTT_client, &connectData)) != 0) {
+        ESP_LOGE(TAG, "Connecting to MQTT failed with return code %d", rc);
     }
     else {
-        printf("MQTT Connected\n");
+        ESP_LOGI(TAG, "MQTT Connected");
     }
 
-    if ((rc = MQTTSubscribe(&client, "FreeRTOS/sample/#", 2, messageArrived)) != 0)
-        printf("Return code from MQTT subscribe is %d\n", rc);
+    char mqtt_topic[24];
+    sprintf(mqtt_topic, "%s/led", esp_wifi_sta_mac_address);
 
-    while (++count)
-    {
-        MQTTMessage message;
-        char payload[30];
+    if ((rc = MQTTSubscribe(&MQTT_client, mqtt_topic, 2, mqttTopicLedReceive)) != 0) {
+        ESP_LOGE(TAG, "Subscribing to topic failed with return code %d", rc);
+    }
 
-        message.qos = 1;
-        message.retained = 0;
-        message.payload = payload;
-        sprintf(payload, "message number %d", count);
-        message.payloadlen = strlen(payload);
+    // mqttTopicLedBroadcast();
 
-        if ((rc = MQTTPublish(&client, "FreeRTOS/sample/a", &message)) != 0)
-            printf("Return code from MQTT publish is %d\n", rc);
-
+    while (1) {
         if (CONFIG_MQTT_USE_TASK) {
-            if ((rc = MQTTYield(&client, 10000)) != 0)
-                printf("Return code from yield is %d\n", rc);
+            if ((rc = MQTTYield(&MQTT_client, 10000)) != 0) {
+                ESP_LOGE(TAG, "Yieling MQTT failed with return code %d", rc);
+            }
         }
 
-        TickType_t xDelay = 60000 / portTICK_PERIOD_MS;
-        vTaskDelay(xDelay);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
+
+    vTaskDelete(NULL);
 }
 
 void app_main()
 {
     esp_err_t esp_err;
     gpio_install_isr_service(0);
+
+    uint8_t mac[6];
+    esp_read_mac(mac, ESP_MAC_WIFI_STA);
+    sprintf(esp_wifi_sta_mac_address, "%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
     // Init I2C bus and sensors
 
@@ -336,6 +364,8 @@ void app_main()
     // xTaskCreate(&SSD1306_task, "SSD1306_task", 2048, NULL, 10, NULL);
 
     WIFI_init(WIFI_MODE_STA , NULL);
+
+    xTaskCreate(&MQTT_task, "MQTT_task", 4096, NULL, 10, NULL);
 
     // Init WS2812 stripe
 
@@ -358,17 +388,6 @@ void app_main()
         HTTPD_FLAG_NONE);
 
     httpdFreertosStart(&httpd_instance);
-
-    uint8_t mac[6];
-    char mac_str[12];
-    esp_read_mac(mac, ESP_MAC_WIFI_STA);
-    esp_log_buffer_hex(TAG, mac, sizeof(mac));
-
-    sprintf(mac_str, "%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    
-
-
-    xTaskCreate(&MQTT_task, "MQTT_task", 4096, NULL, 10, NULL);
 
     esp_err = WS2812_init(&stripe);
     if (!esp_err) {
