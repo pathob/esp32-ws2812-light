@@ -52,8 +52,8 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "MQTTESP32.h"
-#include "MQTTClient.h"
+// #include "MQTTESP32.h"
+// #include "MQTTClient.h"
 
 /*
  * Keep GPIO defines ordered by GPIO_NUM_XX to avoid double assignments

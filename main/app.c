@@ -15,8 +15,8 @@ static unsigned long gpio_intr_last = 0;
 
 static char esp_wifi_sta_mac_address[12];
 
-static MQTTClient MQTT_client;
-static Network MQTT_network;
+// static MQTTClient MQTT_client;
+// static Network MQTT_network;
 
 // webserver stuff
 
@@ -32,7 +32,7 @@ static void ledWebsocketReceive(
 static void ledWebsocketBroadcast();
 
 static void mqttTopicLedReceive(
-    MessageData *data);
+    /* MessageData *data */);
 
 static void mqttTopicLedBroadcast();
 
@@ -258,6 +258,7 @@ static void ledWebsocketBroadcast()
 // TODO: Respect MQTT connection status
 static void mqttTopicLedBroadcast()
 {
+    /*
     return;
 
     int rc = 0;
@@ -274,19 +275,23 @@ static void mqttTopicLedBroadcast()
     if ((rc = MQTTPublish(&MQTT_client, mqtt_topic, &message)) != 0) {
         ESP_LOGE(TAG, "Publishing MQTT message failed with return code %d", rc);
     }
+    */
 }
 
 static void mqttTopicLedReceive(
-    MessageData *data)
+    /* MessageData *data */)
 {
+    /*
     ESP_LOGI(TAG, "Received MQTT message in function %s", __func__);
     if (data->message->payloadlen == 1) {
         strncmp((char *) data->message->payload, "0", 1) == 0 ? off() : on();
     }
+    */
 }
 
 void MQTT_task(void *pvParameters)
 {
+    /*
     unsigned char sendbuf[80], readbuf[80];
     int rc = 0;
     int count = 0;
@@ -336,6 +341,7 @@ void MQTT_task(void *pvParameters)
     }
 
     vTaskDelete(NULL);
+    */
 }
 
 void app_main()
