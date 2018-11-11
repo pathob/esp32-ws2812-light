@@ -15,9 +15,6 @@ static unsigned long gpio_intr_last = 0;
 
 static char esp_wifi_sta_mac_address[12];
 
-// static MQTTClient MQTT_client;
-// static Network MQTT_network;
-
 // webserver stuff
 
 static void ledWebsocketConnect(
@@ -30,11 +27,6 @@ static void ledWebsocketReceive(
     int flags);
 
 static void ledWebsocketBroadcast();
-
-static void mqttTopicLedReceive(
-    /* MessageData *data */);
-
-static void mqttTopicLedBroadcast();
 
 static HttpdFreertosInstance httpd_instance;
 
@@ -138,7 +130,7 @@ static void on()
     uint64_t delay = pow(2, steps);
 
     ledWebsocketBroadcast();
-    mqttTopicLedBroadcast();
+    MQTT_topic_led_broadcast();
 
     for (uint8_t x = 0; x <  stripe.length; x++) {
         WS2812_set_color(&stripe, x, &warmwhite);
@@ -179,7 +171,7 @@ static void off()
     uint64_t delay = pow(2, steps);
 
     ledWebsocketBroadcast();
-    mqttTopicLedBroadcast();
+    MQTT_topic_led_broadcast();
 
     WS2812_color_t black = { 0, 0, 0 };
 
@@ -255,95 +247,6 @@ static void ledWebsocketBroadcast()
     cgiWebsockBroadcast(&httpd_instance.httpdInstance, "/websocket/led", stripe_state ? "1" : "0", 1, WEBSOCK_FLAG_NONE);
 }
 
-// TODO: Respect MQTT connection status
-static void mqttTopicLedBroadcast()
-{
-    /*
-    return;
-
-    int rc = 0;
-    MQTTMessage message;
-
-    message.qos = 1;
-    message.retained = 0;
-    message.payload = stripe_state ? "1" : "0";
-    message.payloadlen = 1;
-
-    char mqtt_topic[24];
-    sprintf(mqtt_topic, "%s/led/status", esp_wifi_sta_mac_address);
-
-    if ((rc = MQTTPublish(&MQTT_client, mqtt_topic, &message)) != 0) {
-        ESP_LOGE(TAG, "Publishing MQTT message failed with return code %d", rc);
-    }
-    */
-}
-
-static void mqttTopicLedReceive(
-    /* MessageData *data */)
-{
-    /*
-    ESP_LOGI(TAG, "Received MQTT message in function %s", __func__);
-    if (data->message->payloadlen == 1) {
-        strncmp((char *) data->message->payload, "0", 1) == 0 ? off() : on();
-    }
-    */
-}
-
-void MQTT_task(void *pvParameters)
-{
-    /*
-    unsigned char sendbuf[80], readbuf[80];
-    int rc = 0;
-    int count = 0;
-
-    MQTTPacket_connectData connectData = MQTTPacket_connectData_initializer;
-    NetworkInit(&MQTT_network);
-    MQTTClientInit(&MQTT_client, &MQTT_network, 30000, sendbuf, sizeof(sendbuf), readbuf, sizeof(readbuf));
-
-    if ((rc = NetworkConnect(&MQTT_network, MQTT_HOST, MQTT_PORT)) != 0)
-        ESP_LOGE(TAG, "Connecting to MQTT network failed with return code %d", rc);
-
-    if (CONFIG_MQTT_USE_TASK) {
-        if ((rc = MQTTStartTask(&MQTT_client)) != pdPASS) {
-            ESP_LOGE(TAG, "Starting MQTT task failed with return code %d", rc);
-        }
-    }
-
-    connectData.MQTTVersion      = CONFIG_MQTT_VERSION;
-    connectData.clientID.cstring = CONFIG_MQTT_CLIENT_ID;
-    connectData.username.cstring = CONFIG_MQTT_USERNAME;
-    connectData.password.cstring = CONFIG_MQTT_PASSWORD;
-
-    if ((rc = MQTTConnect(&MQTT_client, &connectData)) != 0) {
-        ESP_LOGE(TAG, "Connecting to MQTT failed with return code %d", rc);
-    }
-    else {
-        ESP_LOGI(TAG, "MQTT Connected");
-    }
-
-    char mqtt_topic[24];
-    sprintf(mqtt_topic, "%s/led", esp_wifi_sta_mac_address);
-
-    if ((rc = MQTTSubscribe(&MQTT_client, mqtt_topic, 2, mqttTopicLedReceive)) != 0) {
-        ESP_LOGE(TAG, "Subscribing to topic failed with return code %d", rc);
-    }
-
-    // mqttTopicLedBroadcast();
-
-    while (1) {
-        if (CONFIG_MQTT_USE_TASK) {
-            if ((rc = MQTTYield(&MQTT_client, 10000)) != 0) {
-                ESP_LOGE(TAG, "Yieling MQTT failed with return code %d", rc);
-            }
-        }
-
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
-
-    vTaskDelete(NULL);
-    */
-}
-
 void app_main()
 {
     esp_err_t esp_err;
@@ -371,6 +274,7 @@ void app_main()
 
     WIFI_init(WIFI_MODE_STA , NULL);
 
+    ESP_LOGI(TAG, "Starting MQTT");
     xTaskCreate(&MQTT_task, "MQTT_task", 4096, NULL, 10, NULL);
 
     // Init WS2812 stripe
@@ -380,6 +284,7 @@ void app_main()
     stripe.rmt_channel = RMT_CHANNEL_0;
     stripe.rmt_interrupt_num = 0;
 
+    ESP_LOGI(TAG, "Starting HTTPD");
     espFsInit((void*)(webpages_espfs_start));
 
     uint8_t maxConnections = 24;

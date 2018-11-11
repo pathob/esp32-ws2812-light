@@ -1,6 +1,12 @@
 #ifndef MAIN_APP_H
 #define MAIN_APP_H
 
+#include <time.h>
+#include <string.h>
+#include <sys/time.h>
+#include <stdio.h>
+#include <math.h>
+
 #include "esp_attr.h"
 #include "esp_err.h"
 #include "esp_event.h"
@@ -46,14 +52,7 @@
 #include "libesphttpd/cgiwebsocket.h"
 #include "libesphttpd/route.h"
 
-#include <time.h>
-#include <string.h>
-#include <sys/time.h>
-#include <stdio.h>
-#include <math.h>
-
-// #include "MQTTESP32.h"
-// #include "MQTTClient.h"
+#include "mqtt.h"
 
 /*
  * Keep GPIO defines ordered by GPIO_NUM_XX to avoid double assignments

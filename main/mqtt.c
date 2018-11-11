@@ -1,0 +1,92 @@
+#include "mqtt.h"
+
+static const char *TAG = "MQTT";
+
+static char _mqtt_device_name[12];
+static esp_mqtt_client_handle_t _mqtt_client;
+
+static esp_err_t MQTT_event_handler(
+    esp_mqtt_event_handle_t event);
+
+static void MQTT_receive(
+    esp_mqtt_event_handle_t event);
+
+void MQTT_task(
+    void *pvParameters)
+{
+    uint8_t mac[6];
+    esp_read_mac(mac, ESP_MAC_WIFI_STA);
+    sprintf(_mqtt_device_name, "%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+    esp_log_level_set("MQTT_CLIENT", ESP_LOG_VERBOSE);
+
+    const esp_mqtt_client_config_t mqtt_cfg = {
+        .uri = "mqtt://user:password@host:1883",
+        .event_handle = MQTT_event_handler,
+    };
+
+    _mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
+    esp_mqtt_client_start(_mqtt_client);
+
+    while (1) {
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+
+    vTaskDelete(NULL);
+}
+
+// TODO: Respect MQTT connection status
+void MQTT_topic_led_broadcast()
+{
+    char mqtt_topic[24];
+    sprintf(mqtt_topic, "%s/led/status", _mqtt_device_name);
+
+    esp_mqtt_client_publish(_mqtt_client, mqtt_topic, STRIPE_state() ? "1" : "0", 1, 2, 0);
+}
+
+static esp_err_t MQTT_event_handler(
+    esp_mqtt_event_handle_t event)
+{
+    switch (event->event_id) {
+        case MQTT_EVENT_CONNECTED: {
+            ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
+
+            char mqtt_topic[24];
+            sprintf(mqtt_topic, "%s/led", _mqtt_device_name);
+
+            esp_mqtt_client_subscribe(_mqtt_client, mqtt_topic, 2);
+        }
+        case MQTT_EVENT_DATA: {
+            ESP_LOGI(TAG, "MQTT_EVENT_DATA");
+            MQTT_receive(event);
+            break;
+        }
+        default:
+            break;
+    }
+
+    return ESP_OK;
+}
+
+static void MQTT_receive(
+    esp_mqtt_event_handle_t event)
+{
+    ESP_LOGI(TAG, "Received MQTT message");
+
+    char mqtt_topic[24];
+    uint8_t mqtt_topic_len;
+    mqtt_topic_len = sprintf(mqtt_topic, "%s/led", _mqtt_device_name);
+
+    ESP_LOGI(TAG, "Topic: %.*s (%d), Message: %.*s (%d)", event->topic_len, event->topic, event->topic_len, event->data_len, event->data, event->data_len);
+
+    if (mqtt_topic_len == event->topic_len) {
+        ESP_LOGI(TAG, "If 1");
+        if (strncmp(mqtt_topic, event->topic, event->topic_len) == 0) {
+            ESP_LOGI(TAG, "If 2");
+            if (event->data_len == 1) {
+                ESP_LOGI(TAG, "If 3");
+                strncmp((char *) event->data, "0", 1) == 0 ? STRIPE_off() : STRIPE_on();
+            }
+        }
+    }
+}
