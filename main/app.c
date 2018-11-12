@@ -2,43 +2,10 @@
 
 static const char *TAG = "APP";
 
-static WS2812_stripe_t stripe;
-static volatile uint8_t stripe_state = 0; 
-static const uint8_t stripe_length = 56;
-
 static i2c_port_t i2c_port0 = I2C_NUM_0;
-
-static WS2812_color_t warmwhite = { 255, 150, 70 };
 
 static QueueHandle_t gpio_intr_queue = NULL;
 static unsigned long gpio_intr_last = 0;
-
-static char esp_wifi_sta_mac_address[12];
-
-// webserver stuff
-
-static void ledWebsocketConnect(
-    Websock *ws);
-
-static void ledWebsocketReceive(
-    Websock *ws,
-    char *data,
-    int len,
-    int flags);
-
-static void ledWebsocketBroadcast();
-
-static HttpdFreertosInstance httpd_instance;
-
-static uint8_t *httpd_buffer;
-
-static const HttpdBuiltInUrl builtInUrls[] = {
-    ROUTE_REDIRECT("/", "/index.html"),
-    ROUTE_REDIRECT("/apple-touch-icon.png", "/launcher-icon-48.png"),
-    ROUTE_WS("/websocket/led", ledWebsocketConnect),
-    ROUTE_FILESYSTEM(),
-    ROUTE_END()
-};
 
 void SSD1306_task(void *pvParameters)
 {
@@ -75,11 +42,8 @@ void SSD1306_task(void *pvParameters)
     time_t t;
     timeinfo_t timeinfo = { 0 };
 
-    char buffer[50];
     char strftime_buf[6];
-
     uint8_t buffer_bitmap_8x8[64];
-
     char buffer_ip[20] = { 0 };
 
     if (WIFI_sta_is_connected()) {
@@ -114,92 +78,6 @@ void SSD1306_task(void *pvParameters)
     vTaskDelete(NULL);
 }
 
-// implementation
-
-static void on()
-{
-    if (stripe_state) {
-        return;
-    }
-
-    ESP_LOGI(TAG, "LED on");
-    stripe_state = 1;
-
-    uint8_t steps = 18;
-    uint8_t offset = 2;
-    uint64_t delay = pow(2, steps);
-
-    ledWebsocketBroadcast();
-    MQTT_topic_led_broadcast();
-
-    for (uint8_t x = 0; x <  stripe.length; x++) {
-        WS2812_set_color(&stripe, x, &warmwhite);
-        WS2812_write(&stripe);
-        delay_ms(10);
-    }
-
-    /*
-    for (uint8_t i = offset; i < steps; i++) {
-        uint8_t r = warmwhite.r * (i / (float) steps);
-        uint8_t g = warmwhite.g * (i / (float) steps);
-        uint8_t b = warmwhite.b * (i / (float) steps);
-
-        WS2812_color_t color = { r, g, b };
-
-        for (uint8_t x = 0; x <  stripe.length; x++) {
-            WS2812_set_color(&stripe, x, &color);
-        }
-
-        WS2812_write(&stripe);
-
-        delay_us(delay >> i);
-    }
-    */
-}
-
-static void off()
-{
-    if (!stripe_state) {
-        return;
-    }
-
-    ESP_LOGI(TAG, "LED off");
-    stripe_state = 0;
-
-    uint8_t steps = 18;
-    uint8_t offset = 2;
-    uint64_t delay = pow(2, steps);
-
-    ledWebsocketBroadcast();
-    MQTT_topic_led_broadcast();
-
-    WS2812_color_t black = { 0, 0, 0 };
-
-    for (uint8_t x = 0; x <  stripe.length; x++) {
-        WS2812_set_color(&stripe, x, &black);
-        WS2812_write(&stripe);
-        delay_ms(10);
-    }
-
-    /*
-    for (uint8_t i = offset; i < steps; i++) {
-        uint8_t r = warmwhite.r * ((steps-(i+1)) / (float) steps);
-        uint8_t g = warmwhite.g * ((steps-(i+1)) / (float) steps);
-        uint8_t b = warmwhite.b * ((steps-(i+1)) / (float) steps);
-
-        WS2812_color_t color = { r, g, b };
-
-        for (uint8_t x = 0; x <  stripe.length; x++) {
-            WS2812_set_color(&stripe, x, &color);
-        }
-
-        WS2812_write(&stripe);
-
-        delay_us(delay >> (i-offset));
-    }
-    */
-}
-
 static void IRAM_ATTR gpio_isr(void* args)
 {
     gpio_num_t gpio_num = (gpio_num_t) args;
@@ -215,46 +93,16 @@ static void IRAM_ATTR gpio_isr(void* args)
 static void IRAM_ATTR gpio_isr_task(void* pvParams)
 {
     gpio_num_t gpio_num;
-    BaseType_t x = pdFALSE;
-    unsigned long us = 0;
 
     while(1) {
         xQueueReceive(gpio_intr_queue, &gpio_num, portMAX_DELAY);
-        stripe_state == 0 ? on() : off(); // Toggle
+        STRIPE_toggle();
     }
-}
-
-static void ledWebsocketConnect(
-    Websock *ws)
-{
-	ws->recvCb = ledWebsocketReceive;
-    cgiWebsocketSend(&httpd_instance.httpdInstance, ws, stripe_state ? "1" : "0", 1, WEBSOCK_FLAG_NONE);
-}
-
-static void ledWebsocketReceive(
-    Websock *ws,
-    char *data,
-    int len,
-    int flags)
-{
-    if (len == 1) {
-        strncmp(data, "0", 1) == 0 ? off() : on();
-    }
-}
-
-static void ledWebsocketBroadcast()
-{
-    cgiWebsockBroadcast(&httpd_instance.httpdInstance, "/websocket/led", stripe_state ? "1" : "0", 1, WEBSOCK_FLAG_NONE);
 }
 
 void app_main()
 {
-    esp_err_t esp_err;
     gpio_install_isr_service(0);
-
-    uint8_t mac[6];
-    esp_read_mac(mac, ESP_MAC_WIFI_STA);
-    sprintf(esp_wifi_sta_mac_address, "%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
     // Init I2C bus and sensors
 
@@ -277,33 +125,8 @@ void app_main()
     ESP_LOGI(TAG, "Starting MQTT");
     xTaskCreate(&MQTT_task, "MQTT_task", 4096, NULL, 10, NULL);
 
-    // Init WS2812 stripe
-
-    stripe.gpio_num = WS2812_GPIO;
-    stripe.length = stripe_length;
-    stripe.rmt_channel = RMT_CHANNEL_0;
-    stripe.rmt_interrupt_num = 0;
-
-    ESP_LOGI(TAG, "Starting HTTPD");
-    espFsInit((void*)(webpages_espfs_start));
-
-    uint8_t maxConnections = 24;
-    httpd_buffer = malloc(sizeof(RtosConnType) * maxConnections);
-
-    httpdFreertosInit(
-        &httpd_instance,
-        builtInUrls,
-        80,
-        httpd_buffer,
-        maxConnections,
-        HTTPD_FLAG_NONE);
-
-    httpdFreertosStart(&httpd_instance);
-
-    esp_err = WS2812_init(&stripe);
-    if (!esp_err) {
-        on();
-    }
+    HTTPD_init();
+    STRIPE_init();
 
     gpio_config_t gpio_conf;
     gpio_conf.intr_type = GPIO_PIN_INTR_POSEDGE;

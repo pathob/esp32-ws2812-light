@@ -1,5 +1,5 @@
-#ifndef MAIN_APP_H
-#define MAIN_APP_H
+#ifndef __APP_H__
+#define __APP_H__
 
 #include <time.h>
 #include <string.h>
@@ -39,42 +39,7 @@
 #include "freertos/queue.h"
 #include "freertos/task.h"
 
-#include "libesphttpd/esp.h"
-#include "libesphttpd/httpd.h"
-#include "libesphttpd/httpd-freertos.h"
-#include "libesphttpd/httpdespfs.h"
-#include "libesphttpd/cgiwifi.h"
-#include "libesphttpd/cgiflash.h"
-#include "libesphttpd/auth.h"
-#include "libesphttpd/espfs.h"
-#include "libesphttpd/captdns.h"
-#include "libesphttpd/webpages-espfs.h"
-#include "libesphttpd/cgiwebsocket.h"
-#include "libesphttpd/route.h"
-
 #include "mqtt.h"
-
-/*
- * Keep GPIO defines ordered by GPIO_NUM_XX to avoid double assignments
- */
-
-// const gpio_num_t ROTENC_GPIO_CLK   = GPIO_NUM_16;   // pin
-// const gpio_num_t ROTENC_GPIO_DT    = GPIO_NUM_17;   // pin
-// const gpio_num_t ROTENC_GPIO_SW    = GPIO_NUM_18;   // pin
-const gpio_num_t I2C_P0_GPIO_SDA   = GPIO_NUM_4;
-const gpio_num_t I2C_P0_GPIO_SCL   = GPIO_NUM_15;
-const gpio_num_t OLED_GPIO_RESET   = GPIO_NUM_16;   // pin
-const gpio_num_t WS2812_GPIO       = GPIO_NUM_33;
-
-/*
- * Other defines
- */
-
-#define MQTT_HOST      CONFIG_MQTT_HOST
-#define MQTT_PORT      CONFIG_MQTT_PORT
-#define MQTT_CLIENT_ID CONFIG_MQTT_CLIENT_ID
-#define MQTT_USERNAME  CONFIG_MQTT_USERNAME
-#define MQTT_PASSWORD  CONFIG_MQTT_PASSWORD
-#define MQTT_USE_TASK  CONFIG_MQTT_USE_TASK
+#include "defs.h"
 
 #endif
