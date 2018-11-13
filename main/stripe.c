@@ -30,22 +30,20 @@ uint8_t STRIPE_state()
 
 void STRIPE_on()
 {
-    ESP_LOGI(TAG, "On");
-
-    if (_stripe_state) {
-        return;
-    }
-
+    uint8_t old_state = _stripe_state;
     _stripe_state = 1;
-
 
     ledWebsocketBroadcast();
     MQTT_topic_led_broadcast();
 
-    for (uint8_t x = 0; x <  _stripe.length; x++) {
-        WS2812_set_color(&_stripe, x, &warmwhite);
-        WS2812_write(&_stripe);
-        delay_ms(10);
+    if (!old_state) {
+        ESP_LOGI(TAG, "Turning on");
+
+        for (uint8_t x = 0; x <  _stripe.length; x++) {
+            WS2812_set_color(&_stripe, x, &warmwhite);
+            WS2812_write(&_stripe);
+            delay_ms(10);
+        }
     }
 
     /*
@@ -73,23 +71,20 @@ void STRIPE_on()
 
 void STRIPE_off()
 {
-    ESP_LOGI(TAG, "Off");
-
-    if (!_stripe_state) {
-        return;
-    }
-
-    ESP_LOGI(TAG, "LED off");
+    uint8_t old_state = _stripe_state;
     _stripe_state = 0;
-
 
     ledWebsocketBroadcast();
     MQTT_topic_led_broadcast();
 
-    for (uint8_t x = 0; x <  _stripe.length; x++) {
-        WS2812_set_color(&_stripe, x, &black);
-        WS2812_write(&_stripe);
-        delay_ms(10);
+    if (old_state) {
+        ESP_LOGI(TAG, "Turning off");
+
+        for (uint8_t x = 0; x <  _stripe.length; x++) {
+            WS2812_set_color(&_stripe, x, &black);
+            WS2812_write(&_stripe);
+            delay_ms(10);
+        }
     }
 
     /*

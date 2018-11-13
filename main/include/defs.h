@@ -4,6 +4,7 @@
 #include "esp_types.h"
 
 #include "driver/gpio.h"
+#include "driver/i2c.h"
 
 /*
  * Keep GPIO defines ordered by GPIO_NUM_XX to avoid double assignments
@@ -16,5 +17,7 @@ extern const gpio_num_t I2C_P0_GPIO_SDA;
 extern const gpio_num_t I2C_P0_GPIO_SCL;
 extern const gpio_num_t OLED_GPIO_RESET;
 extern const gpio_num_t WS2812_GPIO;
+
+extern const i2c_port_t I2C_PORT;
 
 #endif

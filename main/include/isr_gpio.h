@@ -1,14 +1,13 @@
-#ifndef __MQTT_H__
-#define __MQTT_H__
+#ifndef __ISR_GPIO_H__
+#define __ISR_GPIO_H__
 
 #include "esp_attr.h"
 #include "esp_err.h"
-#include "esp_event.h"
-#include "esp_event_loop.h"
 #include "esp_log.h"
 #include "esp_system.h"
-#include "esp_task_wdt.h"
 #include "esp_types.h"
+
+#include "driver/gpio.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/portmacro.h"
@@ -16,16 +15,10 @@
 #include "freertos/queue.h"
 #include "freertos/task.h"
 
-#include "mqtt_client.h"
-#include "mqtt_config.h"
+#include "periph/delay.h"
 
 #include "stripe.h"
 
-#include "sdkconfig.h"
-
-void MQTT_task(
-    void *pvParameters);
-
-void MQTT_topic_led_broadcast();
+void ISR_GPIO_init();
 
 #endif

@@ -46,6 +46,8 @@ void ledWebsocketReceive(
     int len,
     int flags)
 {
+    ESP_LOGI(TAG, "Received websocket");
+
     if (len == 1) {
         strncmp(data, "0", 1) == 0 ? STRIPE_off() : STRIPE_on();
     }

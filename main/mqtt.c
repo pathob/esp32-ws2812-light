@@ -21,7 +21,10 @@ void MQTT_task(
     esp_log_level_set("MQTT_CLIENT", ESP_LOG_VERBOSE);
 
     const esp_mqtt_client_config_t mqtt_cfg = {
-        .uri = "mqtt://user:password@host:1883",
+        .host = CONFIG_MQTT_HOST,
+        .port = CONFIG_MQTT_PORT,
+        .username = CONFIG_MQTT_USERNAME,
+        .password = CONFIG_MQTT_PASSWORD,
         .event_handle = MQTT_event_handler,
     };
 
@@ -39,7 +42,7 @@ void MQTT_task(
 void MQTT_topic_led_broadcast()
 {
     char mqtt_topic[24];
-    sprintf(mqtt_topic, "%s/led/status", _mqtt_device_name);
+    sprintf(mqtt_topic, "%s/led/state", _mqtt_device_name);
 
     esp_mqtt_client_publish(_mqtt_client, mqtt_topic, STRIPE_state() ? "1" : "0", 1, 2, 0);
 }
@@ -71,20 +74,15 @@ static esp_err_t MQTT_event_handler(
 static void MQTT_receive(
     esp_mqtt_event_handle_t event)
 {
-    ESP_LOGI(TAG, "Received MQTT message");
-
     char mqtt_topic[24];
     uint8_t mqtt_topic_len;
     mqtt_topic_len = sprintf(mqtt_topic, "%s/led", _mqtt_device_name);
 
-    ESP_LOGI(TAG, "Topic: %.*s (%d), Message: %.*s (%d)", event->topic_len, event->topic, event->topic_len, event->data_len, event->data, event->data_len);
+    ESP_LOGI(TAG, "Received Topic: %.*s (%d), Message: %.*s (%d)", event->topic_len, event->topic, event->topic_len, event->data_len, event->data, event->data_len);
 
     if (mqtt_topic_len == event->topic_len) {
-        ESP_LOGI(TAG, "If 1");
         if (strncmp(mqtt_topic, event->topic, event->topic_len) == 0) {
-            ESP_LOGI(TAG, "If 2");
             if (event->data_len == 1) {
-                ESP_LOGI(TAG, "If 3");
                 strncmp((char *) event->data, "0", 1) == 0 ? STRIPE_off() : STRIPE_on();
             }
         }

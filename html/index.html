@@ -50,21 +50,30 @@
     <script src="bootstrap-toggle.min.js"></script>
     <script src="ie10-viewport-bug-workaround.js"></script>
     <script>
-      function websocketInit() {
-        var ledToggle = $('#led-toggle');
+      var ledToggleWebsocket;
 
-        ledToggle.bootstrapToggle({
-          on: 'An',
-          off: 'Aus'
-        });
+      var ledToggle = $('#led-toggle');
 
-        var ledToggleWebsocket;
-        var ledStatus = ledToggle.prop('checked');
+      ledToggle.bootstrapToggle({
+        on: 'An',
+        off: 'Aus'
+      });
 
-        if (typeof ledToggleWebsocket !== 'undefined') {
-          ledToggleWebsocket.onclose = function () {}; // disable onclose handler first
-          ledToggleWebsocket.close();
+      var ledStatus = ledToggle.prop('checked');
+
+      $('#led-toggle').change(function() {
+        var toggleStatus = $(this).prop('checked');
+        console.log("Toggle status " + toggleStatus + ", LED Status " + ledStatus);;
+
+        if (toggleStatus != ledStatus) {
+          ledStatus = toggleStatus;
+          websocketSendStatus(ledStatus);
+          console.log("Status changed");
         }
+      });
+
+      function websocketInit() {
+        websocketClose();
 
         var loc = window.location;
         var ws_uri;
@@ -77,30 +86,46 @@
 
         ledToggleWebsocket = new WebSocket(ws_uri + "/websocket/led");
 
-        $('#led-toggle').change(function() {
-          var toggleStatus = $(this).prop('checked');
-          console.log("Toggle status " + toggleStatus + ", LED Status " + ledStatus);;
-
-          if (toggleStatus != ledStatus) {
-            ledStatus = toggleStatus;
-            ledToggleWebsocket.send(ledStatus ? "1" : "0");
-            console.log("Status changed");
-          }
-        })
-
         ledToggleWebsocket.onmessage = function (e) {
           var recvStatus = e.data;
           console.log('Server: ' + recvStatus);
-          if (recvStatus === "1" && ledStatus == false) {
+
+          if (recvStatus === "1") {
+            if (ledStatus == false) {
+              console.log("Set toggle to on");
+              ledToggle.bootstrapToggle('on');
+            }
+
             ledStatus = true;
-            console.log("Set toggle to on");
-            ledToggle.bootstrapToggle('on');
-          } else if (recvStatus === "0" && ledStatus == true) {
+          } else if (recvStatus === "0") {
+            if (ledStatus == true) {
+              console.log("Set toggle to off");
+              ledToggle.bootstrapToggle('off');
+            }
+
             ledStatus = false;
-            console.log("Set toggle to off");
-            ledToggle.bootstrapToggle('off');
           }
         };
+      }
+
+      function websocketClose() {
+        console.log("trying to close websocket");
+
+        if (typeof ledToggleWebsocket !== 'undefined') {
+          ledToggleWebsocket.onclose = function () {};
+          ledToggleWebsocket.close();
+          ledToggleWebsocket = undefined;
+
+          console.log("websocket closed");
+        } else {
+          console.log("websocket undefined");
+        }
+      }
+
+      function websocketSendStatus(status) {
+        if (typeof ledToggleWebsocket !== 'undefined') {
+          ledToggleWebsocket.send(ledStatus ? "1" : "0");
+        }
       }
 
       $(document).ready(function() {
@@ -112,6 +137,11 @@
         console.log("focus");
         websocketInit();
       });
+
+      $(window).onbeforeunload = function() {
+        console.log("onbeforeunload");
+        websocketClose();
+      };
     </script>
   </body>
 </html>
