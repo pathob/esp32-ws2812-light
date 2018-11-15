@@ -1,5 +1,5 @@
-#ifndef __HTTPD_H__
-#define __HTTPD_H__
+#ifndef __MAIN_HTTPD_H__
+#define __MAIN_HTTPD_H__
 
 #include "esp_attr.h"
 #include "esp_err.h"
@@ -20,8 +20,8 @@
 #include "libesphttpd/cgiwebsocket.h"
 #include "libesphttpd/route.h"
 
-#include "defs.h"
-#include "stripe.h"
+#include "main/defs.h"
+#include "main/stripe.h"
 
 void HTTPD_init();
 

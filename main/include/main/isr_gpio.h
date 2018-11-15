@@ -1,5 +1,5 @@
-#ifndef __ISR_GPIO_H__
-#define __ISR_GPIO_H__
+#ifndef __MAIN_ISR_GPIO_H__
+#define __MAIN_ISR_GPIO_H__
 
 #include "esp_attr.h"
 #include "esp_err.h"
@@ -17,7 +17,7 @@
 
 #include "periph/delay.h"
 
-#include "stripe.h"
+#include "main/stripe.h"
 
 void ISR_GPIO_init();
 

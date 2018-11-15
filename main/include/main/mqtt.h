@@ -1,5 +1,5 @@
-#ifndef __MQTT_H__
-#define __MQTT_H__
+#ifndef __MAIN_MQTT_H__
+#define __MAIN_MQTT_H__
 
 #include "esp_attr.h"
 #include "esp_err.h"
@@ -19,7 +19,7 @@
 #include "mqtt_client.h"
 #include "mqtt_config.h"
 
-#include "stripe.h"
+#include "main/stripe.h"
 
 #include "sdkconfig.h"
 

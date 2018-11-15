@@ -1,5 +1,5 @@
-#ifndef __STRIPE_H__
-#define __STRIPE_H__
+#ifndef __MAIN_STRIPE_H__
+#define __MAIN_STRIPE_H__
 
 #include <math.h>
 
@@ -11,9 +11,9 @@
 
 #include "periph/ws2812.h"
 
-#include "defs.h"
-#include "httpd.h"
-#include "mqtt.h"
+#include "main/defs.h"
+#include "main/httpd.h"
+#include "main/mqtt.h"
 
 void STRIPE_init();
 

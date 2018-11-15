@@ -1,4 +1,4 @@
-#include "display.h"
+#include "main/display.h"
 
 static const char *TAG = "DISPLAY";
 

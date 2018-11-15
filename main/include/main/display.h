@@ -1,5 +1,5 @@
-#ifndef __APP_H__
-#define __APP_H__
+#ifndef __MAIN_DISPLAY_H__
+#define __MAIN_DISPLAY_H__
 
 #include <time.h>
 #include <string.h>
@@ -39,8 +39,10 @@
 #include "freertos/queue.h"
 #include "freertos/task.h"
 
-#include "defs.h"
-#include "isr_gpio.h"
-#include "mqtt.h"
+#include "main/mqtt.h"
+#include "main/defs.h"
+
+void DISPLAY_task(
+    void *pvParameters);
 
 #endif

@@ -1,4 +1,4 @@
-#include "stripe.h"
+#include "main/stripe.h"
 
 static char *TAG = "STRIPE";
 

@@ -1,5 +1,5 @@
-#ifndef __DEFS_H__
-#define __DEFS_H__
+#ifndef __MAIN_DEFS_H__
+#define __MAIN_DEFS_H__
 
 #include "esp_types.h"
 
