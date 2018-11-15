@@ -12,4 +12,4 @@
 	url = https://github.com/chmorgan/libesphttpd.git
 [submodule ".vscode"]
 	path = .vscode
-	url = git@github.com:pathob/.vscode-esp32.git
+	url = https://github.com/pathob/.vscode-esp32.git
