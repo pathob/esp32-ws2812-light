@@ -1,0 +1,23 @@
+sudo: false
+language: bash
+os:
+  - linux
+addons:
+  apt:
+    packages:
+      - gperf
+      - python
+      - python-serial
+before_install:
+  - IDF_TAG=v3.2-beta1
+  - TOOLCHAIN=xtensa-esp32-elf-linux64-1.22.0-61-gab8375a-5.2.0
+install:
+  - export INSTALL_PATH=/opt
+  - export IDF_PATH=${INSTALL_PATH}/esp-idf
+  - export PATH=$PATH:${INSTALL_PATH}/xtensa-esp32-elf/bin
+  - wget -O ${INSTALL_PATH}/${TOOLCHAIN}.tar.gz https://dl.espressif.com/dl/${TOOLCHAIN}.tar.gz
+  - tar -xzf ${INSTALL_PATH}/${TOOLCHAIN}.tar.gz -C ${INSTALL_PATH}
+  - git clone --branch ${IDF_TAG} --recursive https://github.com/espressif/esp-idf.git ${IDF_PATH}
+script:
+  - make defconfig
+  - make
