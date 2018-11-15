@@ -1,15 +1,12 @@
 [submodule "components/ota"]
 	path = components/ota
-	url = git@github.com:pathob/esp32-ota.git
+	url = https://github.com/pathob/esp32-ota.git
 [submodule "components/wifi"]
 	path = components/wifi
-	url = git@github.com:pathob/esp32-wifi.git
-[submodule "components/mqtt"]
-	path = components/mqtt
-	url = git@github.com:pathob/paho.mqtt.embedded-c.git
+	url = https://github.com/pathob/esp32-wifi.git
 [submodule "components/periphery"]
 	path = components/periphery
-	url = git@github.com:pathob/esp32-periphery.git
+	url = https://github.com/pathob/esp32-periphery.git
 [submodule "components/libesphttpd"]
 	path = components/libesphttpd
 	url = https://github.com/chmorgan/libesphttpd.git
