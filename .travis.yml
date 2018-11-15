@@ -10,7 +10,7 @@ addons:
       - python-serial
 before_install:
   - IDF_TAG=v3.2-beta1
-  - TOOLCHAIN=xtensa-esp32-elf-linux64-1.22.0-61-gab8375a-5.2.0
+  - TOOLCHAIN=xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0
 install:
   - export INSTALL_PATH=/opt
   - export IDF_PATH=${INSTALL_PATH}/esp-idf
