@@ -19,5 +19,6 @@ install:
   - tar -xzf ${INSTALL_PATH}/${TOOLCHAIN}.tar.gz -C ${INSTALL_PATH}
   - git clone --branch ${IDF_TAG} --recursive https://github.com/espressif/esp-idf.git ${IDF_PATH}
 script:
+  - python -m pip install --user -r ${IDF_PATH}/requirements.txt
   - make defconfig
   - make
