@@ -14,11 +14,11 @@ static void MQTT_receive(
 void MQTT_task(
     void *pvParameters)
 {
+    CONNECTIVITY_wait(WIFI_STA_CONNECTED);
+
     uint8_t mac[6];
     esp_read_mac(mac, ESP_MAC_WIFI_STA);
     sprintf(_mqtt_device_name, "%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-
-    esp_log_level_set("MQTT_CLIENT", ESP_LOG_VERBOSE);
 
     const esp_mqtt_client_config_t mqtt_cfg = {
         .host = CONFIG_MQTT_HOST,
@@ -41,6 +41,8 @@ void MQTT_task(
 // TODO: Respect MQTT connection status
 void MQTT_topic_led_broadcast()
 {
+    CONNECTIVITY_wait(MQTT_CONNECTED);
+
     char mqtt_topic[24];
     sprintf(mqtt_topic, "%s/led/state", _mqtt_device_name);
 
@@ -53,14 +55,21 @@ static esp_err_t MQTT_event_handler(
     switch (event->event_id) {
         case MQTT_EVENT_CONNECTED: {
             ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
+            CONNECTIVITY_set(MQTT_CONNECTED);
 
             char mqtt_topic[24];
             sprintf(mqtt_topic, "%s/led", _mqtt_device_name);
 
             esp_mqtt_client_subscribe(_mqtt_client, mqtt_topic, 2);
+            break;
+        }
+        case MQTT_EVENT_DISCONNECTED: {
+            ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
+            CONNECTIVITY_clear(MQTT_CONNECTED);
+            break;
         }
         case MQTT_EVENT_DATA: {
-            ESP_LOGI(TAG, "MQTT_EVENT_DATA");
+            ESP_LOGD(TAG, "MQTT_EVENT_DATA");
             MQTT_receive(event);
             break;
         }

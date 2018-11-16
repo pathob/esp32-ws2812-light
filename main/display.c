@@ -5,7 +5,6 @@ static const char *TAG = "DISPLAY";
 void DISPLAY_task(
     void *pvParameters)
 {
-    EventBits_t event_bits = 0;
     ESP_LOGI(TAG, "Starting SSD1306 task");
 
     SSD1306_set_bitmap(espressif, 124, 24, 2, 20);
@@ -20,20 +19,18 @@ void DISPLAY_task(
     SSD1306_display();
     vTaskDelay(333 / portTICK_PERIOD_MS);
 
-    event_bits = xEventGroupGetBits(WIFI_event_group);
-
     SSD1306_set_text_6x8(FONT_lcd5x7, "Connecting to...", 4, 23);
     SSD1306_set_text_6x8(FONT_lcd5x7, WIFI_STA_SSID, 4, 33);
     SSD1306_display();
     vTaskDelay(500 / portTICK_PERIOD_MS);
 
-    xEventGroupWaitBits(WIFI_event_group, WIFI_STA_CONNECTED_BIT, false, true, portMAX_DELAY);
+    CONNECTIVITY_wait(WIFI_STA_CONNECTED);
 
     SSD1306_set_text_6x8(FONT_lcd5x7, "Fetching time...", 4, 28);
     SSD1306_display();
     vTaskDelay(500 / portTICK_PERIOD_MS);
 
-    xEventGroupWaitBits(WIFI_event_group, SNTP_TIME_SET_BIT, false, true, portMAX_DELAY);
+    CONNECTIVITY_wait(SNTP_TIME_SET);
 
     time_t t;
     timeinfo_t timeinfo = { 0 };

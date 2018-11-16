@@ -6,8 +6,6 @@ void app_main()
 {
     gpio_install_isr_service(0);
 
-    OTA_print();
-
     // Init I2C bus and sensors
 
     // ESP_ERROR_CHECK( SSD1306_init_with_reset(i2c_port0, SSD1306_ADDR_LOW, OLED_GPIO_RESET) );

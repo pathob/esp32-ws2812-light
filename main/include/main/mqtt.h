@@ -21,6 +21,8 @@
 
 #include "main/stripe.h"
 
+#include "connectivity/connectivity.h"
+
 #include "sdkconfig.h"
 
 void MQTT_task(
