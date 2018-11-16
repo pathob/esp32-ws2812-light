@@ -28,7 +28,7 @@ deploy:
   api_key:
     secure: "rF11ZdXd9UBlPreZ72i5HTypC6v+8SY0aoPhnlO20yDEum/1cwiAn6S2wRNLpad1lFtXGiW5Lvnlam0S7sPAbTU+SAxi96c6uP2oOmwM06ayu0OGoHyQkbXZYeEPWq/jdeC1lglth+3rKg8pf+eQLMm8qeAbTrPOoWI06uVks4j99TK7w7TEE3PROiAri6rrmT+YbHHvwjC8fqHfN/tF8hiSdThZYPPctQtW52iQLsa7yoChzLh8pNZUv2bCIZZY279s5SkHdkkC1Fo/WQEB/wgpm15TMkMjIN0dDsyEoMlUL19D+VGUEED3aQLOBpTQxm69o3GPZNpN4z522ZVk4xnkX9pxlgrjYRYZTxcOFw9OYEOQ0YiIQoskn2oVd92nsPHBA8/Jh4xbhSKY25HkMlmujMP8j6Oowrxve+ZbO9yqfyip8REI1CCYJWDwBvAipuTdKUJNCIanxZ2X0PrEuofpmqPS0YIHVLQH4Xzm5C+j587L1pU10DG2p3onaIdpi4fpZMqYT2hQpfKPMIggDder18ZjnzybCZaJK30tsgpvRFIgAbu5ghfagtJBHF1xVSq+4LLNr7XkoM6n1uravqNEge1BPJTwSB27vgBeuyGWjhsFUrm2JPlggNFCQKReOxElgJ4yqQAWgC71W7eXnqG4bVkWF/rAtHR3KsZp+cc="
   file_glob: true
-  file: "*.bin"
+  file: "build/*.bin"
   skip_cleanup: true
   on:
     tags: true
