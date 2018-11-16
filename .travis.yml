@@ -1,24 +1,36 @@
 sudo: false
 language: bash
 os:
-  - linux
+- linux
 addons:
   apt:
     packages:
-      - gperf
-      - python
-      - python-serial
+    - gperf
+    - python
+    - python-serial
 before_install:
-  - IDF_TAG=v3.2-beta1
-  - TOOLCHAIN=xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0
+- IDF_TAG=v3.2-beta1
+- TOOLCHAIN=xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0
 install:
-  - export INSTALL_PATH=/opt
-  - export IDF_PATH=${INSTALL_PATH}/esp-idf
-  - export PATH=$PATH:${INSTALL_PATH}/xtensa-esp32-elf/bin
-  - wget -O ${INSTALL_PATH}/${TOOLCHAIN}.tar.gz https://dl.espressif.com/dl/${TOOLCHAIN}.tar.gz
-  - tar -xzf ${INSTALL_PATH}/${TOOLCHAIN}.tar.gz -C ${INSTALL_PATH}
-  - git clone --branch ${IDF_TAG} --recursive https://github.com/espressif/esp-idf.git ${IDF_PATH}
+- export INSTALL_PATH=/opt
+- export IDF_PATH=${INSTALL_PATH}/esp-idf
+- export PATH=$PATH:${INSTALL_PATH}/xtensa-esp32-elf/bin
+- wget -O ${INSTALL_PATH}/${TOOLCHAIN}.tar.gz https://dl.espressif.com/dl/${TOOLCHAIN}.tar.gz
+- tar -xzf ${INSTALL_PATH}/${TOOLCHAIN}.tar.gz -C ${INSTALL_PATH}
+- git clone --branch ${IDF_TAG} --recursive https://github.com/espressif/esp-idf.git
+  ${IDF_PATH}
 script:
-  - python -m pip install --user -r ${IDF_PATH}/requirements.txt
-  - make defconfig
-  - make
+- python -m pip install --user -r ${IDF_PATH}/requirements.txt
+- make defconfig
+- make
+deploy:
+  provider: releases
+  api_key: "${TOKEN}"
+  file_glob: true
+  file: "*.bin"
+  skip_cleanup: true
+  on:
+    tags: true
+env:
+  global:
+    secure: hbotVm68Nolts1H55SvBB1g3r124ZjGzZ3lH6jR7di+96A9Lf26k1cUioMO5K1qPLWG9Zqwe7IXMDfDSlXkFb3V/d1pYj3BhlQ70KCTmJ5dt5fJtTMLf68BioLHlWpWatI8xmA3S8isCYIhv0kjw+7qilFjlc0pI9CFaWJwYppjnvYOXVtWZLLrARQlCh5WEdTjxn5q93nyrkyNZ4F1fJxVklo+TQH16IUdD1BmAhqrBXWYmA2s3R8rzxJv95xifnpxpzHVnNq1du9EfBu9LxXR4KSdVgmW7LG9GiLpgCGeBf2A5hK8f03aIidh4auSYpABSRcrRDpdtDwKyIXm9+WFq+drEhUAVwToi5PyYWTBlCKsBBpFNnWTtc/05QbGcqYsnNR0lKkS9JOn36F3qoclAZLewGMB3PIMD5B1ELPBKRRPyhH0kxgF5S2rCTlLTbYbQZGT3IeOF3UmpSyfjFCVbRhph9LHFXlvL3OWBqWh/DJm3Cb2BVRniOC0/rUK46kGA+IU4bNlpQYZZgGr9TaXsj7TlpQTUrQDcciv3djdiIqwulgyKE/CIu/FpbJnEfmR9dLn+eraI4PDBAxbDFsth7gB/HqYjkyKYE3WZOvT7VLSR4BELO4AmOQqBmddgNdcCjfzOwQcSQZrWNdNfTfWtyUkQagkgrSUhj3spJoM=
