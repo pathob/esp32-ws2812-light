@@ -6,6 +6,9 @@ void app_main()
 {
     gpio_install_isr_service(0);
 
+    esp_log_level_set("*", ESP_LOG_INFO);
+    esp_log_level_set("esp-tls", ESP_LOG_VERBOSE);
+
     // Init I2C bus and sensors
 
     // ESP_ERROR_CHECK( SSD1306_init_with_reset(i2c_port0, SSD1306_ADDR_LOW, OLED_GPIO_RESET) );
@@ -13,6 +16,7 @@ void app_main()
     // xTaskCreate(&SSD1306_task, "SSD1306_task", 2048, NULL, 10, NULL);
 
     WIFI_init(WIFI_MODE_STA , NULL);
+    OTA_init();
 
     ESP_LOGI(TAG, "Starting MQTT");
     xTaskCreate(&MQTT_task, "MQTT_task", 4096, NULL, 10, NULL);
