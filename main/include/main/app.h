@@ -21,8 +21,9 @@
 #include "driver/gpio.h"
 #include "driver/rmt.h"
 
-#include "wifi.h"
-#include "ota.h"
+#include "connectivity/wifi.h"
+#include "connectivity/ota.h"
+
 #include "periph/i2c.h"
 #include "periph/delay.h"
 #include "periph/ws2812.h"

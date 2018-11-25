@@ -1,15 +1,12 @@
-[submodule "components/ota"]
-	path = components/ota
-	url = https://github.com/pathob/esp32-ota.git
-[submodule "components/wifi"]
-	path = components/wifi
-	url = https://github.com/pathob/esp32-wifi.git
+[submodule ".vscode"]
+	path = .vscode
+	url = https://github.com/pathob/.vscode-esp32.git
+[submodule "components/connectivity"]
+	path = components/connectivity
+	url = https://github.com/pathob/esp32-connectivity.git
 [submodule "components/periphery"]
 	path = components/periphery
 	url = https://github.com/pathob/esp32-periphery.git
 [submodule "components/libesphttpd"]
 	path = components/libesphttpd
 	url = https://github.com/chmorgan/libesphttpd.git
-[submodule ".vscode"]
-	path = .vscode
-	url = https://github.com/pathob/.vscode-esp32.git

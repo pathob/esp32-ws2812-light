@@ -21,7 +21,9 @@
 #include "driver/gpio.h"
 #include "driver/rmt.h"
 
-#include "ota.h"
+#include "connectivity/connectivity.h"
+#include "connectivity/ota.h"
+
 #include "periph/i2c.h"
 #include "periph/delay.h"
 #include "periph/ws2812.h"
@@ -41,7 +43,6 @@
 #include "main/mqtt.h"
 #include "main/defs.h"
 
-#include "connectivity/connectivity.h"
 
 void DISPLAY_task(
     void *pvParameters);
