@@ -46,7 +46,7 @@ void MQTT_topic_led_broadcast()
     char mqtt_topic[24];
     sprintf(mqtt_topic, "%s/led/state", _mqtt_device_name);
 
-    esp_mqtt_client_publish(_mqtt_client, mqtt_topic, STRIPE_state() ? "1" : "0", 1, 2, 0);
+    esp_mqtt_client_publish(_mqtt_client, mqtt_topic, STRIPE_state() ? "1" : "0", 1, 2, 1);
 }
 
 static esp_err_t MQTT_event_handler(
