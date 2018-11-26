@@ -44,7 +44,7 @@ void MQTT_topic_led_broadcast()
     CONNECTIVITY_wait(MQTT_CONNECTED);
 
     char mqtt_topic[24];
-    sprintf(mqtt_topic, "%s/led/state", _mqtt_device_name);
+    sprintf(mqtt_topic, "%.12s/led/state", _mqtt_device_name);
 
     esp_mqtt_client_publish(_mqtt_client, mqtt_topic, STRIPE_state() ? "1" : "0", 1, 2, 1);
 }
@@ -58,7 +58,7 @@ static esp_err_t MQTT_event_handler(
             CONNECTIVITY_set(MQTT_CONNECTED);
 
             char mqtt_topic[24];
-            sprintf(mqtt_topic, "%s/led", _mqtt_device_name);
+            sprintf(mqtt_topic, "%.12s/led", _mqtt_device_name);
 
             esp_mqtt_client_subscribe(_mqtt_client, mqtt_topic, 2);
             break;
@@ -85,7 +85,7 @@ static void MQTT_receive(
 {
     char mqtt_topic[24];
     uint8_t mqtt_topic_len;
-    mqtt_topic_len = sprintf(mqtt_topic, "%s/led", _mqtt_device_name);
+    mqtt_topic_len = sprintf(mqtt_topic, "%.12s/led", _mqtt_device_name);
 
     ESP_LOGI(TAG, "Received Topic: %.*s (%d), Message: %.*s (%d)", event->topic_len, event->topic, event->topic_len, event->data_len, event->data, event->data_len);
 
