@@ -39,8 +39,9 @@ void STRIPE_on()
     if (!old_state) {
         ESP_LOGI(TAG, "Turning on");
 
-        for (uint8_t x = 0; x <  _stripe.length; x++) {
+        for (uint8_t x = 0; x <  _stripe.length / 2; x++) {
             WS2812_set_color(&_stripe, x, &warmwhite);
+            WS2812_set_color(&_stripe, _stripe_length-x-1, &warmwhite);
             WS2812_write(&_stripe);
             delay_ms(10);
         }
@@ -80,8 +81,9 @@ void STRIPE_off()
     if (old_state) {
         ESP_LOGI(TAG, "Turning off");
 
-        for (uint8_t x = 0; x <  _stripe.length; x++) {
+        for (uint8_t x = 0; x <  _stripe.length / 2; x++) {
             WS2812_set_color(&_stripe, x, &black);
+            WS2812_set_color(&_stripe, _stripe.length-x-1, &black);
             WS2812_write(&_stripe);
             delay_ms(10);
         }
