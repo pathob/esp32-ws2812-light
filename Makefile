@@ -6,7 +6,3 @@
 PROJECT_NAME := app
 
 include $(IDF_PATH)/make/project.mk
-
-# deploy file to esp-ota-server
-deploy: all
-	cp build/$(PROJECT_NAME).bin /srv/esp-ota-server/data
