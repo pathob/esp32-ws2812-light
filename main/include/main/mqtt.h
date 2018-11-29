@@ -22,11 +22,17 @@
 #include "main/stripe.h"
 
 #include "connectivity/connectivity.h"
+#include "connectivity/mqtt.h"
 
 #include "sdkconfig.h"
 
-void MQTT_task(
-    void *pvParameters);
+void MQTT_init_handler();
+
+void MQTT_connected_handler(
+    esp_mqtt_event_handle_t event);
+
+void MQTT_data_handler(
+    esp_mqtt_event_handle_t event);
 
 void MQTT_topic_led_broadcast();
 

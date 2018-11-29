@@ -23,6 +23,8 @@
 
 #include "connectivity/connectivity.h"
 #include "connectivity/ota.h"
+#include "connectivity/sntp.h"
+#include "connectivity/wifi.h"
 
 #include "periph/i2c.h"
 #include "periph/delay.h"

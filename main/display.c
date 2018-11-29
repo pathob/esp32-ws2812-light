@@ -20,17 +20,17 @@ void DISPLAY_task(
     vTaskDelay(333 / portTICK_PERIOD_MS);
 
     SSD1306_set_text_6x8(FONT_lcd5x7, "Connecting to...", 4, 23);
-    SSD1306_set_text_6x8(FONT_lcd5x7, WIFI_STA_SSID, 4, 33);
+    SSD1306_set_text_6x8(FONT_lcd5x7, CONFIG_WIFI_STA_SSID, 4, 33);
     SSD1306_display();
     vTaskDelay(500 / portTICK_PERIOD_MS);
 
-    CONNECTIVITY_wait(WIFI_STA_CONNECTED);
+    WIFI_sta_connectivity_wait();
 
     SSD1306_set_text_6x8(FONT_lcd5x7, "Fetching time...", 4, 28);
     SSD1306_display();
     vTaskDelay(500 / portTICK_PERIOD_MS);
 
-    CONNECTIVITY_wait(SNTP_TIME_SET);
+    SNTP_connectivity_wait();
 
     time_t t;
     timeinfo_t timeinfo = { 0 };
