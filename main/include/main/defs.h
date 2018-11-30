@@ -13,6 +13,7 @@
 // extern const gpio_num_t ROTENC_GPIO_CLK;
 // extern const gpio_num_t ROTENC_GPIO_DT;
 // extern const gpio_num_t ROTENC_GPIO_SW;
+extern const gpio_num_t LED_GPIO;
 extern const gpio_num_t I2C_P0_GPIO_SDA;
 extern const gpio_num_t I2C_P0_GPIO_SCL;
 extern const gpio_num_t OLED_GPIO_RESET;

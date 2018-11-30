@@ -6,6 +6,10 @@ void app_main()
 {
     gpio_install_isr_service(0);
 
+    gpio_pad_select_gpio(LED_GPIO);
+    gpio_set_direction(LED_GPIO, GPIO_MODE_OUTPUT);
+    gpio_set_level(LED_GPIO, 1);
+
     esp_log_level_set("*", ESP_LOG_INFO);
     esp_log_level_set("esp-tls", ESP_LOG_VERBOSE);
 
@@ -33,10 +37,6 @@ void app_main()
     };
 
     I2C_init(I2C_PORT, &i2c_port0_conf);
-
-    // ESP_ERROR_CHECK( SSD1306_init_with_reset(i2c_port0, SSD1306_ADDR_LOW, OLED_GPIO_RESET) );
-    // ESP_ERROR_CHECK( BME280_init(i2c_port0, BME280_ADDR_LOW) );
-    // xTaskCreate(&SSD1306_task, "SSD1306_task", 2048, NULL, 10, NULL);
 
     HTTPD_init();
 
