@@ -25,15 +25,15 @@
 #include "connectivity/ota.h"
 #include "connectivity/sntp.h"
 
-#include "periph/i2c.h"
-#include "periph/delay.h"
-#include "periph/ws2812.h"
-#include "periph/display/bitmap.h"
-#include "periph/display/ssd1306_i2c.h"
-// #include "periph/display/keyboard_64x128.h"
-#include "periph/font/lcd5x7.h"
-#include "periph/sensor/bme280_i2c.h"
-// #include "periph/sensor/rotary_encoder.h"
+#include "periphery/i2c.h"
+#include "periphery/delay.h"
+#include "periphery/ws2812.h"
+#include "periphery/display/bitmap.h"
+#include "periphery/display/ssd1306_i2c.h"
+#include "periphery/font/lcd5x7.h"
+#include "periphery/sensor/bme280_i2c.h"
+// #include "periphery/display/keyboard_64x128.h"
+// #include "periphery/sensor/rotary_encoder.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/portmacro.h"
@@ -42,6 +42,7 @@
 #include "freertos/task.h"
 
 #include "main/defs.h"
+#include "main/display.h"
 #include "main/isr_gpio.h"
 #include "main/mqtt.h"
 

@@ -9,7 +9,7 @@
 #include "esp_system.h"
 #include "esp_types.h"
 
-#include "periph/ws2812.h"
+#include "periphery/ws2812.h"
 
 #include "main/defs.h"
 #include "main/httpd.h"

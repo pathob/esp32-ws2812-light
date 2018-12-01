@@ -15,7 +15,7 @@
 #include "freertos/queue.h"
 #include "freertos/task.h"
 
-#include "periph/delay.h"
+#include "periphery/delay.h"
 
 #include "main/stripe.h"
 
