@@ -2,6 +2,9 @@
 
 static const char *TAG = "DISPLAY";
 
+static void WIFI_sta_rssi_bitmap_8x8(
+    uint8_t *bitmap);
+
 void DISPLAY_task(
     void *pvParameters)
 {
@@ -58,7 +61,7 @@ void DISPLAY_task(
         SSD1306_set_text_6x8(FONT_lcd5x7, strftime_buf, 95, 4);
         SSD1306_set_bitmap(bluetooth_icon_8x8, 8, 8, 85, 3);
 
-        WIFI_sta_rssi_bitmap_8x8(&buffer_bitmap_8x8);
+        WIFI_sta_rssi_bitmap_8x8(buffer_bitmap_8x8);
         SSD1306_set_bitmap(buffer_bitmap_8x8, 8, 8, 75, 3);
 
         SSD1306_set_bitmap(wifi_icon_8x8, 8, 8, 65, 3);
@@ -69,4 +72,28 @@ void DISPLAY_task(
     }
 
     vTaskDelete(NULL);
+}
+
+void WIFI_sta_rssi_bitmap_8x8(
+    uint8_t *bitmap)
+{
+    uint8_t wifi_rssi_8x8[64] = { 0 };
+    uint8_t rssi_level = WIFI_sta_rssi_level();
+    uint16_t i = 0;
+
+    // ESP_LOGI(TAG, "STA RSSI Level is %d", rssi_level);
+
+    for (uint8_t y = 0; y < 8; y++) {
+        for (uint8_t x = 0; x < 8; x++) {
+            if ((x == 1 && y > 5)
+                    || (x == 3 && y > 3 && rssi_level > 0)
+                    || (x == 5 && y > 1 && rssi_level > 1)
+                    || (x == 7 && rssi_level > 2)) {
+                wifi_rssi_8x8[i] = 1;
+            }
+            i++;
+        }
+    }
+
+    memcpy(bitmap, &wifi_rssi_8x8, sizeof(uint8_t) * 64);
 }

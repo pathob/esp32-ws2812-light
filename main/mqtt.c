@@ -2,12 +2,10 @@
 
 static const char *TAG = "MQTT";
 
-static char _mqtt_device_name[12];
+static char _mqtt_device_name[12] = { 0 };
 
 void MQTT_init_handler() {
-    char *device_name;
-    CONNECTIVITY_device_id(&device_name);
-    memcpy(_mqtt_device_name, device_name, 12);
+    CONNECTIVITY_device_id(_mqtt_device_name);
 }
 
 void MQTT_connected_handler(

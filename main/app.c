@@ -4,6 +4,8 @@ static const char *TAG = "APP";
 
 void app_main()
 {
+    ESP_LOGI(TAG, "Starting...");
+
     gpio_install_isr_service(0);
 
     gpio_pad_select_gpio(LED_GPIO);
