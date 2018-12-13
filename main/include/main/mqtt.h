@@ -34,6 +34,8 @@ void MQTT_connected_handler(
 void MQTT_data_handler(
     esp_mqtt_event_handle_t event);
 
-void MQTT_topic_led_broadcast();
+void MQTT_publish_rgb_status(
+    char *data,
+    uint8_t data_len);
 
 #endif

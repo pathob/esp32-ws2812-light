@@ -9,6 +9,8 @@
 #include "esp_system.h"
 #include "esp_types.h"
 
+#include "cJSON.h"
+
 #include "periphery/ws2812.h"
 
 #include "main/defs.h"
@@ -17,11 +19,15 @@
 
 void STRIPE_init();
 
-uint8_t STRIPE_state();
+void STRIPE_set(
+    uint8_t *state,
+    uint8_t *brightness,
+    WS2812_color_t *color);
 
-void STRIPE_on();
+void STRIPE_set_json(
+    char *data);
 
-void STRIPE_off();
+uint8_t STRIPE_get_state();
 
 void STRIPE_toggle();
 

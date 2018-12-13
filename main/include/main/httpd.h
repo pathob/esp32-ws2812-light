@@ -25,15 +25,17 @@
 
 void HTTPD_init();
 
-void ledWebsocketConnect(
+void HTTPD_websocket_led_connect(
     Websock *ws);
 
-void ledWebsocketReceive(
+void HTTPD_websocket_led_receive(
     Websock *ws,
     char *data,
     int len,
     int flags);
 
-void ledWebsocketBroadcast();
+void HTTPD_websocket_led_broadcast(
+    char *data,
+    uint8_t data_len);
 
 #endif
