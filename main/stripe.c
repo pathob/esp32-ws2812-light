@@ -5,10 +5,9 @@ static char *TAG = "STRIPE";
 static WS2812_stripe_t _stripe;
 static volatile uint8_t _stripe_state = 0;
 static volatile uint8_t _stripe_brightness = 255;
-static volatile WS2812_color_t _stripe_color = { 0 };
+static volatile WS2812_color_t _stripe_color = { 255, 150, 70 };
 static const uint8_t _stripe_length = 56;
 
-// static const WS2812_color_t warmwhite = { 255, 150, 70 };
 
 static void STRIPE_websocket_broadcast_status();
 
@@ -50,12 +49,14 @@ void STRIPE_set(
     STRIPE_websocket_broadcast_status();
     STRIPE_mqtt_publish_status();
 
-    float factor = _stripe_state * (_stripe_brightness / 255.0);
-    uint8_t r = (uint8_t) factor * _stripe_color.r;
-    uint8_t g = (uint8_t) factor * _stripe_color.g;
-    uint8_t b = (uint8_t) factor * _stripe_color.b;
+    float factor = _stripe_state * (_stripe_brightness / 255.0f);
+    uint8_t r = (uint8_t) (factor * (float) _stripe_color.r);
+    uint8_t g = (uint8_t) (factor * (float) _stripe_color.g);
+    uint8_t b = (uint8_t) (factor * (float) _stripe_color.b);
 
     WS2812_color_t c = { r, g, b };
+
+    ESP_LOGI(TAG, "Set computed color %d,%d,%d", c.r, c.g, c.b);
 
     for (uint8_t x = 0; x <  _stripe.length / 2; x++) {
         WS2812_set_color(&_stripe, x, &c);
