@@ -6,8 +6,8 @@ static WS2812_stripe_t _stripe;
 static volatile uint8_t _stripe_state = 0;
 static volatile uint8_t _stripe_brightness = 255;
 static volatile WS2812_color_t _stripe_color = { 255, 150, 70 };
-static const uint8_t _stripe_length = 56;
-
+static const uint8_t _stripe_length = 59;
+static const uint8_t _stripe_interval = 3;
 
 static void STRIPE_websocket_broadcast_status();
 
@@ -58,7 +58,7 @@ void STRIPE_set(
 
     ESP_LOGI(TAG, "Set computed color %d,%d,%d", c.r, c.g, c.b);
 
-    for (uint8_t x = 0; x <  _stripe.length / 2; x++) {
+    for (uint8_t x = 0; x <  _stripe.length / 2; x = x + _stripe_interval) {
         WS2812_set_color(&_stripe, x, &c);
         WS2812_set_color(&_stripe, _stripe_length-x-1, &c);
         WS2812_write(&_stripe);
@@ -88,6 +88,17 @@ void STRIPE_set_json(
             s = 1;
         }
         stripe_state = &s;
+    }
+
+    // TODO: transition
+
+    const cJSON *color_temp = cJSON_GetObjectItemCaseSensitive(json, "color_temp");
+    if (cJSON_IsNumber(color_temp)) {
+        ESP_LOGD(TAG, "Found color_temp in JSON");
+        WS2812_color_t c;
+
+        RGB_from_mired(color_temp->valueint, (RGB_t*) &c);
+        stripe_color = &c;
     }
 
     const cJSON *brightness = cJSON_GetObjectItemCaseSensitive(json, "brightness");
@@ -153,3 +164,4 @@ static void STRIPE_mqtt_publish_status()
 
     MQTT_publish_rgb_status(mqtt_data, mqtt_data_len);
 }
+
