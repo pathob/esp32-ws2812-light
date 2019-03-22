@@ -31,6 +31,11 @@ void STRIPE_set(
     uint8_t *brightness,
     WS2812_color_t *color)
 {
+    float factor = _stripe_state * (_stripe_brightness / 255.0f);
+    uint8_t old_r = (uint8_t) (factor * (float) _stripe_color_rgb.r);
+    uint8_t old_g = (uint8_t) (factor * (float) _stripe_color_rgb.g);
+    uint8_t old_b = (uint8_t) (factor * (float) _stripe_color_rgb.b);
+
     if (state) {
         _stripe_state = *state ? 1 : 0;
     }
@@ -47,22 +52,36 @@ void STRIPE_set(
         _stripe_state, _stripe_brightness, _stripe_color_rgb.r, _stripe_color_rgb.g, _stripe_color_rgb.b
     );
 
+    // The answer should be sent immediatelly, no matter what color has actually been set
     STRIPE_websocket_broadcast_status();
     STRIPE_mqtt_publish_status();
 
-    float factor = _stripe_state * (_stripe_brightness / 255.0f);
-    uint8_t r = (uint8_t) (factor * (float) _stripe_color_rgb.r);
-    uint8_t g = (uint8_t) (factor * (float) _stripe_color_rgb.g);
-    uint8_t b = (uint8_t) (factor * (float) _stripe_color_rgb.b);
+    factor = _stripe_state * (_stripe_brightness / 255.0f);
+    uint8_t new_r = (uint8_t) (factor * (float) _stripe_color_rgb.r);
+    uint8_t new_g = (uint8_t) (factor * (float) _stripe_color_rgb.g);
+    uint8_t new_b = (uint8_t) (factor * (float) _stripe_color_rgb.b);
 
-    WS2812_color_t c = { r, g, b };
+    const uint8_t steps = 50;
+    const uint16_t delay = 1000 / steps;
+    float step_r = (new_r - old_r) / (float) steps;
+    float step_g = (new_g - old_g) / (float) steps;
+    float step_b = (new_b - old_b) / (float) steps;
 
-    ESP_LOGI(TAG, "Set computed color %d,%d,%d", c.r, c.g, c.b);
+    for (uint8_t i = 0; i < steps; i++) {
+        WS2812_color_t c = {
+            old_r + (uint8_t) ((i + 1) * step_r),
+            old_g + (uint8_t) ((i + 1) * step_g),
+            old_b + (uint8_t) ((i + 1) * step_b)
+        };
 
-    for (uint8_t x = 0; x <  _stripe.length; x += _stripe_interval) {
-        WS2812_set_color(&_stripe, x, &c);
-        WS2812_write(&_stripe);
-        delay_ms(10);
+        ESP_LOGI(TAG, "Set computed color %d,%d,%d", c.r, c.g, c.b);
+
+        for (uint8_t x = 0; x <  _stripe.length; x += _stripe_interval) {
+            WS2812_set_color(&_stripe, x, &c);
+            WS2812_write(&_stripe);
+        }
+
+        delay_ms(delay);
     }
 }
 
