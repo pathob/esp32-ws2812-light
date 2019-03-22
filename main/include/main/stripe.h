@@ -15,8 +15,8 @@
 
 #include "main/defs.h"
 #include "main/httpd.h"
+#include "main/light.h"
 #include "main/mqtt.h"
-#include "main/rgb.h"
 
 void STRIPE_init();
 

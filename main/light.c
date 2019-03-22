@@ -1,19 +1,19 @@
-#include "main/rgb.h"
+#include "main/light.h"
 
 // See https://en.wikipedia.org/wiki/Mired
 
-void RGB_from_mired(
+void LIGHT_rgb_from_mired(
     uint16_t mired,
-    RGB_t *rgb)
+    LIGHT_rgb_t *rgb)
 {
-    RGB_from_kelvin(1000000 / mired, rgb);
+    LIGHT_rgb_from_kelvin(1000000 / mired, rgb);
 }
 
 // See http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code/
 
-void RGB_from_kelvin(
+void LIGHT_rgb_from_kelvin(
     uint16_t kelvin,
-    RGB_t *rgb)
+    LIGHT_rgb_t *rgb)
 {
     uint8_t temp = kelvin / 100;
     int16_t r, g, b;
@@ -56,5 +56,12 @@ void RGB_from_kelvin(
     rgb->r = r;
     rgb->g = g;
     rgb->b = b;
+}
+
+// See http://www.niwa.nu/2013/05/math-behind-colorspace-conversions-rgb-hsl/
+
+static void LIGHT_rgb_from_HS()
+{
+
 }
 

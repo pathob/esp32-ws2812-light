@@ -5,9 +5,10 @@ static char *TAG = "STRIPE";
 static WS2812_stripe_t _stripe;
 static volatile uint8_t _stripe_state = 0;
 static volatile uint8_t _stripe_brightness = 255;
-static volatile WS2812_color_t _stripe_color = { 255, 150, 70 };
-static const uint8_t _stripe_length = 59;
-static const uint8_t _stripe_interval = 3;
+static volatile WS2812_color_t _stripe_color_rgb = { 255, 150, 70 };
+static volatile uint16_t _stripe_color_mired = 588;
+static const uint8_t _stripe_length = 3;
+static const uint8_t _stripe_interval = 1;
 
 static void STRIPE_websocket_broadcast_status();
 
@@ -39,28 +40,27 @@ void STRIPE_set(
     }
 
     if (color) {
-        _stripe_color = *color;
+        _stripe_color_rgb = *color;
     }
 
     ESP_LOGI(TAG, "Set to state %d, brightness %d, color %d,%d,%d",
-        _stripe_state, _stripe_brightness, _stripe_color.r, _stripe_color.g, _stripe_color.b
+        _stripe_state, _stripe_brightness, _stripe_color_rgb.r, _stripe_color_rgb.g, _stripe_color_rgb.b
     );
 
     STRIPE_websocket_broadcast_status();
     STRIPE_mqtt_publish_status();
 
     float factor = _stripe_state * (_stripe_brightness / 255.0f);
-    uint8_t r = (uint8_t) (factor * (float) _stripe_color.r);
-    uint8_t g = (uint8_t) (factor * (float) _stripe_color.g);
-    uint8_t b = (uint8_t) (factor * (float) _stripe_color.b);
+    uint8_t r = (uint8_t) (factor * (float) _stripe_color_rgb.r);
+    uint8_t g = (uint8_t) (factor * (float) _stripe_color_rgb.g);
+    uint8_t b = (uint8_t) (factor * (float) _stripe_color_rgb.b);
 
     WS2812_color_t c = { r, g, b };
 
     ESP_LOGI(TAG, "Set computed color %d,%d,%d", c.r, c.g, c.b);
 
-    for (uint8_t x = 0; x <  _stripe.length / 2; x = x + _stripe_interval) {
+    for (uint8_t x = 0; x <  _stripe.length; x += _stripe_interval) {
         WS2812_set_color(&_stripe, x, &c);
-        WS2812_set_color(&_stripe, _stripe_length-x-1, &c);
         WS2812_write(&_stripe);
         delay_ms(10);
     }
@@ -97,7 +97,8 @@ void STRIPE_set_json(
         ESP_LOGD(TAG, "Found color_temp in JSON");
         WS2812_color_t c;
 
-        RGB_from_mired(color_temp->valueint, (RGB_t*) &c);
+        _stripe_color_mired = color_temp->valueint;
+        LIGHT_rgb_from_mired(_stripe_color_mired, (LIGHT_rgb_t*) &c);
         stripe_color = &c;
     }
 
@@ -154,12 +155,13 @@ static void STRIPE_mqtt_publish_status()
     char mqtt_data[128] = { 0 };
     uint8_t mqtt_data_len;
 
-    mqtt_data_len = sprintf(mqtt_data, "{\"state\":\"%s\",\"brightness\":%u,\"color\":{\"r\":%u,\"g\":%u,\"b\":%u}}",
+    mqtt_data_len = sprintf(mqtt_data, "{\"state\":\"%s\",\"brightness\":%u,\"color\":{\"r\":%u,\"g\":%u,\"b\":%u},\"color_temp\":%u}",
         _stripe_state ? "ON" : "OFF",
         _stripe_brightness,
-        _stripe_color.r,
-        _stripe_color.g,
-        _stripe_color.b
+        _stripe_color_rgb.r,
+        _stripe_color_rgb.g,
+        _stripe_color_rgb.b,
+        _stripe_color_mired
     );
 
     MQTT_publish_rgb_status(mqtt_data, mqtt_data_len);
