@@ -7,8 +7,8 @@ static volatile uint8_t _stripe_state = 0;
 static volatile uint8_t _stripe_brightness = 255;
 static volatile WS2812_color_t _stripe_color_rgb = { 255, 150, 70 };
 static volatile uint16_t _stripe_color_mired = 588;
-static const uint8_t _stripe_length = 3;
-static const uint8_t _stripe_interval = 1;
+static const uint8_t _stripe_length = 166;
+static const uint8_t _stripe_interval = 4;
 
 static void STRIPE_websocket_broadcast_status();
 
@@ -29,7 +29,8 @@ void STRIPE_init()
 void STRIPE_set(
     uint8_t *state,
     uint8_t *brightness,
-    WS2812_color_t *color)
+    WS2812_color_t *color,
+    uint32_t transition_ms)
 {
     float factor = _stripe_state * (_stripe_brightness / 255.0f);
     uint8_t old_r = (uint8_t) (factor * (float) _stripe_color_rgb.r);
@@ -62,7 +63,7 @@ void STRIPE_set(
     uint8_t new_b = (uint8_t) (factor * (float) _stripe_color_rgb.b);
 
     const uint8_t steps = 50;
-    const uint16_t delay = 1000 / steps;
+    const uint16_t delay = transition_ms / steps;
     float step_r = (new_r - old_r) / (float) steps;
     float step_g = (new_g - old_g) / (float) steps;
     float step_b = (new_b - old_b) / (float) steps;
@@ -78,8 +79,8 @@ void STRIPE_set(
 
         for (uint8_t x = 0; x <  _stripe.length; x += _stripe_interval) {
             WS2812_set_color(&_stripe, x, &c);
-            WS2812_write(&_stripe);
         }
+        WS2812_write(&_stripe);
 
         delay_ms(delay);
     }
@@ -91,6 +92,7 @@ void STRIPE_set_json(
     uint8_t *stripe_state = NULL;
     uint8_t *stripe_brightness = NULL;
     WS2812_color_t *stripe_color = NULL;
+    uint32_t stripe_transition_ms = 1000;
 
     cJSON *json = cJSON_Parse(data);
 
@@ -109,7 +111,12 @@ void STRIPE_set_json(
         stripe_state = &s;
     }
 
-    // TODO: transition
+    const cJSON *transition = cJSON_GetObjectItemCaseSensitive(json, "transition");
+    if (cJSON_IsNumber(transition)) {
+        ESP_LOGD(TAG, "Found transition in JSON");
+
+        stripe_transition_ms = transition->valueint * 1000;
+    }
 
     const cJSON *color_temp = cJSON_GetObjectItemCaseSensitive(json, "color_temp");
     if (cJSON_IsNumber(color_temp)) {
@@ -150,7 +157,7 @@ void STRIPE_set_json(
         stripe_color = &c;
     }
 
-    STRIPE_set(stripe_state, stripe_brightness, stripe_color);
+    STRIPE_set(stripe_state, stripe_brightness, stripe_color, stripe_transition_ms);
 }
 
 uint8_t STRIPE_get_state()
@@ -161,7 +168,7 @@ uint8_t STRIPE_get_state()
 void STRIPE_toggle()
 {
     uint8_t state = !_stripe_state;
-    STRIPE_set(&state, NULL, NULL);
+    STRIPE_set(&state, NULL, NULL, 1000);
 }
 
 static void STRIPE_websocket_broadcast_status()

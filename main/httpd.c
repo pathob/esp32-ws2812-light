@@ -55,7 +55,7 @@ void HTTPD_websocket_led_receive(
             state = 1;
         }
 
-        STRIPE_set(&state, NULL, NULL);
+        STRIPE_set(&state, NULL, NULL, 1000);
     }
 }
 

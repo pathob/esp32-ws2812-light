@@ -23,7 +23,8 @@ void STRIPE_init();
 void STRIPE_set(
     uint8_t *state,
     uint8_t *brightness,
-    WS2812_color_t *color);
+    WS2812_color_t *color,
+    uint32_t transition_ms);
 
 void STRIPE_set_json(
     char *data);
