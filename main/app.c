@@ -26,8 +26,10 @@ void app_main()
 
     I2C_init(I2C_PORT, &i2c_port0_conf);
 
+    /*
     SSD1306_init_with_reset(I2C_PORT, SSD1306_ADDR_LOW, OLED_GPIO_RESET);
     xTaskCreate(DISPLAY_task, "DISPLAY_task", 4096, NULL, 10, NULL);
+    */
 
     WIFI_init(WIFI_MODE_STA , NULL);
 
